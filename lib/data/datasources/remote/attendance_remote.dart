@@ -8,76 +8,116 @@ class AttendanceRemote {
 
   AttendanceRemote(this.dio);
 
+  // ======================================================
   // CHECK IN
+  // ======================================================
   Future<AttendanceModel> checkIn({
     required int employeeId,
     required double latitude,
     required double longitude,
     required String photoPath,
   }) async {
-    final response = await dio.post(
-      ApiEndpoints.checkIn,
-      data: {
-        "employee_id": employeeId,
-        "latitude": latitude,
-        "longitude": longitude,
-        "photo_path": photoPath,
-      },
-    );
+    try {
+      final res = await dio.post(
+        ApiEndpoints.checkIn,
+        data: {
+          "employee_id": employeeId,
+          "latitude": latitude,
+          "longitude": longitude,
+          "photo_path": photoPath,
+        },
+      );
 
-    return AttendanceModel.fromJson(response.data["data"]);
+      return AttendanceModel.fromJson(res.data["data"]);
+    } catch (e) {
+      throw Exception("Check-in gagal: $e");
+    }
   }
 
+  // ======================================================
   // CHECK OUT
+  // ======================================================
   Future<AttendanceModel> checkOut({
     required int employeeId,
     required double latitude,
     required double longitude,
     required String photoPath,
   }) async {
-    final response = await dio.post(
-      ApiEndpoints.checkOut,
-      data: {
-        "employee_id": employeeId,
-        "latitude": latitude,
-        "longitude": longitude,
-        "photo_path": photoPath,
-      },
-    );
+    try {
+      final res = await dio.post(
+        ApiEndpoints.checkOut,
+        data: {
+          "employee_id": employeeId,
+          "latitude": latitude,
+          "longitude": longitude,
+          "photo_path": photoPath,
+        },
+      );
 
-    return AttendanceModel.fromJson(response.data["data"]);
+      return AttendanceModel.fromJson(res.data["data"]);
+    } catch (e) {
+      throw Exception("Check-out gagal: $e");
+    }
   }
 
-  // HISTORY
+  // ======================================================
+  // GET TODAY ATTENDANCE
+  // ======================================================
+  Future<AttendanceModel?> getTodayAttendance({required int employeeId}) async {
+    try {
+      final res = await dio.get(
+        ApiEndpoints.todayAttendance,
+        queryParameters: {"employee_id": employeeId},
+      );
+
+      if (res.data["data"] == null) return null;
+
+      return AttendanceModel.fromJson(res.data["data"]);
+    } catch (e) {
+      throw Exception("Gagal memuat absensi hari ini: $e");
+    }
+  }
+
+  // ======================================================
+  // GET HISTORY
+  // ======================================================
   Future<List<AttendanceModel>> getHistory({
     required int employeeId,
     DateTime? startDate,
     DateTime? endDate,
   }) async {
-    final queryParameters = <String, dynamic>{"employee_id": employeeId};
-    if (startDate != null) {
-      queryParameters["start_date"] = startDate.toShortDate();
-    }
-    if (endDate != null) {
-      queryParameters["end_date"] = endDate.toShortDate();
-    }
+    final queryParams = {
+      "employee_id": employeeId,
+      if (startDate != null) "start_date": startDate.toShortDate(),
+      if (endDate != null) "end_date": endDate.toShortDate(),
+    };
 
-    final response = await dio.get(
-      ApiEndpoints.attendanceHistory,
-      queryParameters: queryParameters,
-    );
+    try {
+      final res = await dio.get(
+        ApiEndpoints.attendanceHistory,
+        queryParameters: queryParams,
+      );
 
-    return (response.data["data"] as List)
-        .map((e) => AttendanceModel.fromJson(e))
-        .toList();
+      return (res.data["data"] as List)
+          .map((e) => AttendanceModel.fromJson(e))
+          .toList();
+    } catch (e) {
+      throw Exception("Gagal memuat history absensi: $e");
+    }
   }
 
-  // OPTIONAL: detail per log id
+  // ======================================================
+  // DETAIL LOG (Optional)
+  // ======================================================
   Future<AttendanceModel?> getDetail(int logId) async {
-    final response = await dio.get("${ApiEndpoints.attendanceHistory}/$logId");
+    try {
+      final res = await dio.get("${ApiEndpoints.attendanceHistory}/$logId");
 
-    if (response.data["data"] == null) return null;
+      if (res.data["data"] == null) return null;
 
-    return AttendanceModel.fromJson(response.data["data"]);
+      return AttendanceModel.fromJson(res.data["data"]);
+    } catch (e) {
+      throw Exception("Gagal memuat detail absensi: $e");
+    }
   }
 }

@@ -1,5 +1,5 @@
 import 'package:absensi_karyawan_app/domain/entities/leave_entity.dart';
-import 'package:absensi_karyawan_app/domain/repositories/leave_repo.dart';
+import 'package:absensi_karyawan_app/domain/repositories/leave_repository.dart';
 
 class ApproveLeave {
   final LeaveRepository repository;

@@ -12,4 +12,12 @@ class DepartmentModel {
       description: json["description"],
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      "department_id": id,
+      "department_name": name,
+      "description": description,
+    };
+  }
 }

@@ -1,42 +1,55 @@
 import '../../domain/entities/leave_entity.dart';
-import '../../domain/repositories/leave_repo.dart';
+import '../../domain/repositories/leave_repository.dart';
 import '../datasources/remote/leave_remote.dart';
 import '../mappers/leave_mapper.dart';
-import '../models/leave_model.dart';
 
 class LeaveRepositoryImpl implements LeaveRepository {
   final LeaveRemote remote;
 
   LeaveRepositoryImpl(this.remote);
 
+  /// SUBMIT LEAVE
   @override
-  Future<LeaveEntity> submitLeave(LeaveEntity leave) async {
-    final model = LeaveMapper.toModel(leave);
+  Future<LeaveEntity> submitLeave({
+    required int employeeId,
+    required String leaveType,
+    required String description,
+    required DateTime startDate,
+    required DateTime endDate,
+    String? attachmentPath,
+  }) async {
+    final model = await remote.submitLeave(
+      employeeId: employeeId,
+      leaveType: leaveType,
+      description: description,
+      startDate: startDate,
+      endDate: endDate,
+      attachmentPath: attachmentPath,
+    );
 
-    // remote must return LeaveModel
-    final LeaveModel result = await remote.submitLeave(model.toJson());
-
-    return LeaveMapper.toEntity(result);
+    return LeaveMapper.toEntity(model);
   }
 
+  /// GET HISTORY
+  @override
+  Future<List<LeaveEntity>> getLeaveHistory({required int employeeId}) async {
+    final models = await remote.getLeaveHistory(employeeId: employeeId);
+    return models.map((m) => LeaveMapper.toEntity(m)).toList();
+  }
+
+  /// APPROVAL (ADMIN / MANAGER)
   @override
   Future<LeaveEntity> approveLeave({
     required int leaveId,
     required bool isApproved,
     String? note,
   }) async {
-    final LeaveModel result = await remote.approveLeave(
+    final model = await remote.approveLeave(
       leaveId: leaveId,
       isApproved: isApproved,
       note: note,
     );
 
-    return LeaveMapper.toEntity(result);
-  }
-
-  @override
-  Future<List<LeaveEntity>> getLeaveHistory(int employeeId) async {
-    final List<LeaveModel> data = await remote.getLeaveHistory(employeeId);
-    return data.map((e) => LeaveMapper.toEntity(e)).toList();
+    return LeaveMapper.toEntity(model);
   }
 }

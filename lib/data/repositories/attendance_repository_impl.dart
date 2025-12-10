@@ -1,5 +1,5 @@
 import '../../domain/entities/attendance_entity.dart';
-import '../../domain/repositories/attendance_repo.dart';
+import '../../domain/repositories/attendance_repository.dart';
 import '../datasources/remote/attendance_remote.dart';
 import '../mappers/attendance_mapper.dart';
 
@@ -8,6 +8,9 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
 
   AttendanceRepositoryImpl(this.remote);
 
+  // ======================================================
+  // CHECK IN
+  // ======================================================
   @override
   Future<AttendanceEntity> checkIn({
     required int employeeId,
@@ -21,9 +24,13 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       longitude: longitude,
       photoPath: photoPath,
     );
+
     return AttendanceMapper.toEntity(model);
   }
 
+  // ======================================================
+  // CHECK OUT
+  // ======================================================
   @override
   Future<AttendanceEntity> checkOut({
     required int employeeId,
@@ -37,23 +44,45 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       longitude: longitude,
       photoPath: photoPath,
     );
+
     return AttendanceMapper.toEntity(model);
   }
 
+  // ======================================================
+  // TODAY ATTENDANCE (NEW)
+  // ======================================================
+  @override
+  Future<AttendanceEntity?> getTodayAttendance({
+    required int employeeId,
+  }) async {
+    final model = await remote.getTodayAttendance(employeeId: employeeId);
+
+    if (model == null) return null;
+
+    return AttendanceMapper.toEntity(model);
+  }
+
+  // ======================================================
+  // HISTORY
+  // ======================================================
   @override
   Future<List<AttendanceEntity>> getAttendanceHistory({
     required int employeeId,
     DateTime? startDate,
     DateTime? endDate,
   }) async {
-    final data = await remote.getHistory(
+    final list = await remote.getHistory(
       employeeId: employeeId,
       startDate: startDate,
       endDate: endDate,
     );
-    return data.map((e) => AttendanceMapper.toEntity(e)).toList();
+
+    return list.map((e) => AttendanceMapper.toEntity(e)).toList();
   }
 
+  // ======================================================
+  // DETAIL (OPTIONAL)
+  // ======================================================
   @override
   Future<AttendanceEntity?> getAttendanceDetail(int logId) async {
     final model = await remote.getDetail(logId);

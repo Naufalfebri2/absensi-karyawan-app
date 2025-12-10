@@ -7,7 +7,13 @@ class AuthRemote {
 
   AuthRemote(this.dio);
 
-  Future<UserModel> login(String email, String password) async {
+  // ==============================
+  // LOGIN
+  // ==============================
+  Future<UserModel> login({
+    required String email,
+    required String password,
+  }) async {
     final response = await dio.post(
       ApiEndpoints.login,
       data: {"email": email, "password": password},
@@ -16,12 +22,20 @@ class AuthRemote {
     return UserModel.fromJson(response.data["data"]);
   }
 
-  Future<bool> verifyOtp(String code) async {
-    final response = await dio.post(
-      ApiEndpoints.verifyOtp,
-      data: {"otp": code},
-    );
+  // ==============================
+  // VERIFY OTP
+  // ==============================
+  Future<UserModel> verifyOtp(String otp) async {
+    final response = await dio.post(ApiEndpoints.verifyOtp, data: {"otp": otp});
 
-    return response.data["success"] == true;
+    return UserModel.fromJson(response.data["data"]);
+  }
+
+  // ==============================
+  // GET PROFILE (optional)
+  // ==============================
+  Future<UserModel> getProfile() async {
+    final response = await dio.get(ApiEndpoints.userProfile);
+    return UserModel.fromJson(response.data["data"]);
   }
 }

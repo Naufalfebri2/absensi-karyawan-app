@@ -2,7 +2,6 @@ import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/user_repo.dart';
 import '../datasources/remote/user_remote.dart';
 import '../mappers/user_mapper.dart';
-import '../models/user_model.dart';
 
 class UserRepositoryImpl implements UserRepository {
   final UserRemote remote;

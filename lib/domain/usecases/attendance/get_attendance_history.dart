@@ -1,5 +1,5 @@
 import 'package:absensi_karyawan_app/domain/entities/attendance_entity.dart';
-import 'package:absensi_karyawan_app/domain/repositories/attendance_repo.dart';
+import 'package:absensi_karyawan_app/domain/repositories/attendance_repository.dart';
 
 class GetAttendanceHistory {
   final AttendanceRepository repository;
