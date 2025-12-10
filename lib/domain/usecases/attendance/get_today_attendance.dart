@@ -4,10 +4,18 @@ import '../../repositories/attendance_repository.dart';
 class GetTodayAttendance {
   final AttendanceRepository repository;
 
-  GetTodayAttendance(this.repository);
+  const GetTodayAttendance(this.repository);
 
-  /// Mengembalikan null jika user belum check in.
+  /// Mengembalikan data absensi hari ini.
+  /// Return `null` jika belum check-in.
   Future<AttendanceEntity?> call(int employeeId) async {
-    return await repository.getTodayAttendance(employeeId);
+    try {
+      return await repository.getTodayAttendance(employeeId);
+    } catch (e, stack) {
+      // Bisa disesuaikan, biar error tidak bikin aplikasi crash.
+      print('Error in GetTodayAttendance: $e');
+      print(stack);
+      return null;
+    }
   }
 }
