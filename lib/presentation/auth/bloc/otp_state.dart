@@ -1,24 +1,17 @@
-import 'package:equatable/equatable.dart';
+abstract class OtpState {}
 
-class OtpState extends Equatable {
-  final bool isLoading;
-  final bool isVerified;
-  final String? errorMessage;
+class OtpInitial extends OtpState {}
 
-  const OtpState({
-    this.isLoading = false,
-    this.isVerified = false,
-    this.errorMessage,
-  });
+class OtpLoading extends OtpState {}
 
-  OtpState copyWith({bool? isLoading, bool? isVerified, String? errorMessage}) {
-    return OtpState(
-      isLoading: isLoading ?? this.isLoading,
-      isVerified: isVerified ?? this.isVerified,
-      errorMessage: errorMessage,
-    );
-  }
+class OtpSuccess extends OtpState {
+  final String token;
+  final Map<String, dynamic> user;
 
-  @override
-  List<Object?> get props => [isLoading, isVerified, errorMessage];
+  OtpSuccess({required this.token, required this.user});
+}
+
+class OtpError extends OtpState {
+  final String message;
+  OtpError(this.message);
 }

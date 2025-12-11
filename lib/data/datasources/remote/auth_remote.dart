@@ -1,41 +1,32 @@
 import 'package:dio/dio.dart';
-import '../../models/user_model.dart';
-import '../../../config/api_endpoints.dart';
 
 class AuthRemote {
   final Dio dio;
 
   AuthRemote(this.dio);
 
-  // ==============================
   // LOGIN
-  // ==============================
-  Future<UserModel> login({
-    required String email,
+  Future<Map<String, dynamic>> login({
+    required String username,
     required String password,
   }) async {
     final response = await dio.post(
-      ApiEndpoints.login,
-      data: {"email": email, "password": password},
+      '/api/auth/login',
+      data: {"username": username, "password": password},
     );
-
-    return UserModel.fromJson(response.data["data"]);
+    return response.data;
   }
 
-  // ==============================
   // VERIFY OTP
-  // ==============================
-  Future<UserModel> verifyOtp(String otp) async {
-    final response = await dio.post(ApiEndpoints.verifyOtp, data: {"otp": otp});
-
-    return UserModel.fromJson(response.data["data"]);
-  }
-
-  // ==============================
-  // GET PROFILE (optional)
-  // ==============================
-  Future<UserModel> getProfile() async {
-    final response = await dio.get(ApiEndpoints.userProfile);
-    return UserModel.fromJson(response.data["data"]);
+  Future<Map<String, dynamic>> verifyOtp({
+    required int userId,
+    required String otp,
+    required String tempToken,
+  }) async {
+    final response = await dio.post(
+      '/api/auth/verify-otp',
+      data: {"user_id": userId, "otp": otp, "temp_token": tempToken},
+    );
+    return response.data;
   }
 }

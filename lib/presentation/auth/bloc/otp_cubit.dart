@@ -1,24 +1,39 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../domain/repositories/auth_repo.dart';
-import '../../../core/services/device/local_storage_service.dart';
+import '../../../domain/usecases/auth/otp_verify.dart';
 import 'otp_state.dart';
 
 class OtpCubit extends Cubit<OtpState> {
-  final AuthRepository authRepo;
+  final OtpVerify verifyUsecase;
 
-  OtpCubit(this.authRepo) : super(const OtpState());
+  OtpCubit(this.verifyUsecase) : super(OtpInitial());
 
-  Future<void> verifyOtp(String otp) async {
-    emit(state.copyWith(isLoading: true, errorMessage: null));
+  Future<void> submitOtp({
+    required int userId,
+    required String otp,
+    required String tempToken,
+  }) async {
+    emit(OtpLoading());
 
     try {
-      final user = await authRepo.verifyOtp(otp);
+      // Call OTP verify usecase
+      final result = await verifyUsecase(
+        userId: userId,
+        otp: otp,
+        tempToken: tempToken,
+      );
 
-      await LocalStorageService.saveToken(user.token);
+      // SUCCESS RESPONSE
+      if (result['success'] == true) {
+        emit(OtpSuccess(token: result['token'], user: result['user']));
+        return;
+      }
 
-      emit(state.copyWith(isLoading: false, isVerified: true));
-    } catch (e) {
-      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
+      // FAILED RESPONSE
+      emit(OtpError(result['message'] ?? "OTP tidak valid"));
+    }
+    // UNEXPECTED ERROR
+    catch (e) {
+      emit(OtpError("Terjadi kesalahan: $e"));
     }
   }
 }

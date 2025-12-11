@@ -1,29 +1,33 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../domain/repositories/auth_repo.dart';
-import '../../../core/services/device/local_storage_service.dart';
 import 'login_state.dart';
+import '../../../domain/usecases/auth/login_user.dart';
 
 class LoginCubit extends Cubit<LoginState> {
-  final AuthRepository authRepo;
+  final LoginUser loginUser;
 
-  LoginCubit(this.authRepo) : super(const LoginState());
+  LoginCubit(this.loginUser) : super(LoginInitial());
 
-  Future<void> login(String email, String password) async {
-    emit(state.copyWith(isLoading: true, errorMessage: null));
+  Future<void> submitLogin({
+    required String username,
+    required String password,
+  }) async {
+    emit(LoginLoading());
 
     try {
-      final user = await authRepo.login(email: email, password: password);
+      final result = await loginUser(username: username, password: password);
 
-      // Simpan session
-      await LocalStorageService.saveToken(user.token);
-      await LocalStorageService.saveRole(user.role);
-      await LocalStorageService.saveEmployeeId(user.employeeId);
-      await LocalStorageService.saveFullName(user.fullName);
-      await LocalStorageService.saveEmail(user.email);
-
-      emit(state.copyWith(isLoading: false, isSuccess: true));
+      if (result['success'] == true) {
+        emit(
+          LoginSuccess(
+            userId: result['user_id'],
+            tempToken: result['temp_token'],
+          ),
+        );
+      } else {
+        emit(LoginError(result['message'] ?? "Login gagal"));
+      }
     } catch (e) {
-      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
+      emit(LoginError("Terjadi kesalahan: $e"));
     }
   }
 }

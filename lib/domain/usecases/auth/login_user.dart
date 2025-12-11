@@ -1,12 +1,21 @@
-import 'package:absensi_karyawan_app/domain/entities/user_entity.dart';
-import 'package:absensi_karyawan_app/domain/repositories/auth_repo.dart';
+import '../../repositories/auth_repo.dart';
 
 class LoginUser {
-  final AuthRepository repository;
+  final AuthRepo repo;
 
-  LoginUser(this.repository);
+  LoginUser(this.repo);
 
-  Future<UserEntity> call({required String email, required String password}) {
-    return repository.login(email: email, password: password);
+  Future<Map<String, dynamic>> call({
+    required String username,
+    required String password,
+  }) async {
+    await Future.delayed(const Duration(seconds: 1)); // Simulasi loading
+
+    // Dummy login
+    if (username == "admin" && password == "admin123") {
+      return {'success': true, 'user_id': 1, 'temp_token': 'TEMP-12345'};
+    }
+
+    return {'success': false, 'message': "Username atau password salah"};
   }
 }
