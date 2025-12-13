@@ -45,16 +45,19 @@ class LoginPage extends StatelessWidget {
                   listener: (context, state) {
                     if (state is LoginSuccess) {
                       // Pindah ke OTP Page sambil bawa data
-                      context.go('/otp', extra: {
-                        'user_id': state.userId,
-                        'temp_token': state.tempToken,
-                      });
+                      context.go(
+                        '/otp',
+                        extra: {
+                          'user_id': state.userId,
+                          'temp_token': state.tempToken,
+                        },
+                      );
                     }
 
                     if (state is LoginError) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(state.message)),
-                      );
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text(state.message)));
                     }
                   },
                   child: SingleChildScrollView(
@@ -72,7 +75,7 @@ class LoginPage extends StatelessWidget {
                         borderRadius: BorderRadius.circular(32),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.25),
+                            color: Colors.black.withValues(alpha: 0.25),
                             blurRadius: 4,
                             offset: const Offset(0, 4),
                           ),
@@ -112,7 +115,7 @@ class LoginPage extends StatelessWidget {
                       color: Colors.white,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.25),
+                          color: Colors.black.withValues(alpha: 0.25),
                           blurRadius: 4,
                           offset: const Offset(0, 4),
                         ),
