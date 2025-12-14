@@ -6,10 +6,9 @@ class OtpVerify {
   OtpVerify(this.repo);
 
   Future<Map<String, dynamic>> call({
-    required int userId,
-    required String otp,
-    required String tempToken,
+    required String email,
+    required String otp
   }) async {
-    return await repo.verifyOtp(userId: userId, otp: otp, tempToken: tempToken);
+    return await repo.verifyOtp(email: email, otp: otp);
   }
 }

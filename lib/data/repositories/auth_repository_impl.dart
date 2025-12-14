@@ -16,10 +16,12 @@ class AuthRepositoryImpl implements AuthRepo {
 
   @override
   Future<Map<String, dynamic>> verifyOtp({
-    required int userId,
-    required String otp,
-    required String tempToken,
+    required String email,
+    required String otp
   }) {
-    return remote.verifyOtp(userId: userId, otp: otp, tempToken: tempToken);
+    return remote.verifyOtp(
+      email: email,
+      otp: otp
+    );
   }
 }

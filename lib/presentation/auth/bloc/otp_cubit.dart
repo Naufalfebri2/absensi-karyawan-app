@@ -8,18 +8,16 @@ class OtpCubit extends Cubit<OtpState> {
   OtpCubit(this.verifyUsecase) : super(OtpInitial());
 
   Future<void> submitOtp({
-    required int userId,
+    required String email,
     required String otp,
-    required String tempToken,
   }) async {
     emit(OtpLoading());
 
     try {
       // Call OTP verify usecase
       final result = await verifyUsecase(
-        userId: userId,
-        otp: otp,
-        tempToken: tempToken,
+        email: email,
+        otp: otp
       );
 
       // SUCCESS RESPONSE

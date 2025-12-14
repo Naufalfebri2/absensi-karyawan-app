@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../bloc/login_cubit.dart';
 import '../bloc/login_state.dart';
 
+
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
 
@@ -67,8 +68,8 @@ class _LoginFormState extends State<LoginForm> {
               TextFormField(
                 controller: _usernameController,
                 decoration: InputDecoration(
-                  labelText: 'Username',
-                  hintText: 'Masukkan username',
+                  labelText: 'Email',
+                  hintText: 'Masukkan Email',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),

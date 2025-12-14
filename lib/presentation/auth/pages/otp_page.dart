@@ -5,10 +5,9 @@ import '../bloc/otp_state.dart';
 import 'package:go_router/go_router.dart';
 
 class OtpPage extends StatefulWidget {
-  final int userId;
-  final String tempToken;
+  final String email;
 
-  const OtpPage({super.key, required this.userId, required this.tempToken});
+  const OtpPage({super.key, required this.email});
 
   @override
   State<OtpPage> createState() => _OtpPageState();
@@ -21,8 +20,8 @@ class _OtpPageState extends State<OtpPage> {
   );
   final List<FocusNode> focusNodes = List.generate(6, (_) => FocusNode());
 
-  late final int userId = widget.userId;
-  late final String tempToken = widget.tempToken;
+  // late final int userId = widget.userId;
+  // late final String tempToken = widget.tempToken;
 
   @override
   void dispose() {
@@ -46,9 +45,9 @@ class _OtpPageState extends State<OtpPage> {
     }
 
     context.read<OtpCubit>().submitOtp(
-      userId: userId,
+      email: AutofillHints.email,
       otp: otpCode,
-      tempToken: tempToken,
+      // tempToken: tempToken,
     );
   }
 

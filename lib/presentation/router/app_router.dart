@@ -22,8 +22,8 @@ class AppRouter {
           final extra = state.extra as Map<String, dynamic>?;
 
           return OtpPage(
-            userId: extra?['user_id'],
-            tempToken: extra?['temp_token'],
+            email: extra?['email'],
+            // tempToken: extra?['temp_token'],
           );
         },
       ),
