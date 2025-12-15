@@ -7,31 +7,34 @@ class OtpCubit extends Cubit<OtpState> {
 
   OtpCubit(this.verifyUsecase) : super(OtpInitial());
 
-  Future<void> submitOtp({
-    required String email,
-    required String otp,
-  }) async {
+  Future<void> submitOtp({required String email, required String otp}) async {
     emit(OtpLoading());
 
     try {
-      // Call OTP verify usecase
-      final result = await verifyUsecase(
-        email: email,
-        otp: otp
-      );
+      final result = await verifyUsecase(email: email, otp: otp);
 
-      // SUCCESS RESPONSE
       if (result['success'] == true) {
-        emit(OtpSuccess(token: result['token'], user: result['user']));
+        final String token = result['token'] ?? '';
+        final dynamic user = result['user'];
+
+        if (token.isEmpty) {
+          emit(
+            OtpError("Verifikasi berhasil tetapi data login tidak lengkap."),
+          );
+          return;
+        }
+
+        emit(OtpSuccess(token: token, user: user));
         return;
       }
 
-      // FAILED RESPONSE
-      emit(OtpError(result['message'] ?? "OTP tidak valid"));
-    }
-    // UNEXPECTED ERROR
-    catch (e) {
-      emit(OtpError("Terjadi kesalahan: $e"));
+      emit(OtpError(result['message']?.toString() ?? "Kode OTP tidak valid."));
+    } catch (_) {
+      emit(
+        OtpError(
+          "Tidak dapat memverifikasi OTP. Periksa koneksi internet Anda.",
+        ),
+      );
     }
   }
 }

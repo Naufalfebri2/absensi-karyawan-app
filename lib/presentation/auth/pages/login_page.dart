@@ -21,7 +21,7 @@ class LoginPage extends StatelessWidget {
           onTap: () => FocusScope.of(context).unfocus(),
           child: Stack(
             children: [
-              // ===== TOP GRADIENT (Figma akurat) =====
+              // ===== TOP GRADIENT =====
               Container(
                 height: size.height * 0.42,
                 decoration: const BoxDecoration(
@@ -42,9 +42,10 @@ class LoginPage extends StatelessWidget {
               Align(
                 alignment: Alignment.bottomCenter,
                 child: BlocListener<LoginCubit, LoginState>(
+                  listenWhen: (previous, current) =>
+                      current is LoginSuccess || current is LoginError,
                   listener: (context, state) {
                     if (state is LoginSuccess) {
-                      // Pindah ke OTP Page sambil bawa data
                       context.go(
                         '/otp',
                         extra: {
@@ -55,9 +56,14 @@ class LoginPage extends StatelessWidget {
                     }
 
                     if (state is LoginError) {
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: Text(state.message)));
+                      ScaffoldMessenger.of(context)
+                        ..hideCurrentSnackBar()
+                        ..showSnackBar(
+                          SnackBar(
+                            content: Text(state.message),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
                     }
                   },
                   child: SingleChildScrollView(
@@ -66,7 +72,7 @@ class LoginPage extends StatelessWidget {
                       margin: EdgeInsets.only(
                         left: 30,
                         right: 30,
-                        top: size.height * 0.21, // CARD naik mendekati logo
+                        top: size.height * 0.21,
                         bottom: 16,
                       ),
                       padding: const EdgeInsets.fromLTRB(24, 70, 24, 32),
@@ -92,8 +98,8 @@ class LoginPage extends StatelessWidget {
                               color: Colors.black,
                             ),
                           ),
-                          SizedBox(height: 30),
-                          LoginForm(), // <-- tombol login ada di dalam
+                          SizedBox(height: 80),
+                          LoginForm(), // submit ditangani di widget ini
                         ],
                       ),
                     ),
@@ -101,7 +107,7 @@ class LoginPage extends StatelessWidget {
                 ),
               ),
 
-              // ============ LOGO DI ATAS CARD ============ //
+              // ============ LOGO ============ //
               Positioned(
                 top: size.height * 0.09,
                 left: 0,

@@ -1,60 +1,84 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-// Theme
 import 'config/theme/app_theme.dart';
 
 // Router
 import 'presentation/router/app_router.dart';
 
-// Bloc
-import 'package:absensi_karyawan_app/presentation/auth/bloc/login_cubit.dart';
-import 'package:absensi_karyawan_app/presentation/auth/bloc/otp_cubit.dart';
+// Cubit
+import 'presentation/auth/bloc/login_cubit.dart';
+import 'presentation/auth/bloc/otp_cubit.dart';
+import 'presentation/auth/bloc/auth_cubit.dart';
 
-// Usecases (dummy versi lokal)
-import 'package:absensi_karyawan_app/domain/usecases/auth/login_user.dart';
-import 'package:absensi_karyawan_app/domain/usecases/auth/otp_verify.dart';
+// Usecases
+import 'domain/usecases/auth/login_user.dart';
+import 'domain/usecases/auth/otp_verify.dart';
 
-// Repositories
-import 'package:absensi_karyawan_app/data/repositories/auth_repository_impl.dart';
-import 'package:absensi_karyawan_app/data/datasources/remote/auth_remote.dart';
+// Repository & Remote
+import 'data/repositories/auth_repository_impl.dart';
+import 'data/datasources/remote/auth_remote.dart';
 
-// Dio client (tetap boleh dipakai)
-import 'package:absensi_karyawan_app/core/network/dio_client.dart';
+// Core
+import 'core/network/dio_client.dart';
+import 'core/services/device/local_storage_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Debugging interceptor (opsional)
-  DioClient.addInterceptors();
+  // ===============================
+  // CORE DEPENDENCIES
+  // ===============================
+  final storage = LocalStorageService();
 
-  // Initialize dependencies
-  final authRemote = AuthRemote(DioClient.instance);
+  // Setup Dio interceptor (token, logging)
+  DioClient.setupInterceptors(storage);
+
+  final dio = DioClient.instance;
+  final authRemote = AuthRemote(dio);
   final authRepository = AuthRepositoryImpl(authRemote);
 
-  runApp(AbsensiApp(authRepository: authRepository));
+  final authCubit = AuthCubit(storage);
+
+  runApp(AbsensiApp(authRepository: authRepository, authCubit: authCubit));
 }
 
 class AbsensiApp extends StatelessWidget {
   final AuthRepositoryImpl authRepository;
+  final AuthCubit authCubit;
 
-  const AbsensiApp({super.key, required this.authRepository});
+  const AbsensiApp({
+    super.key,
+    required this.authRepository,
+    required this.authCubit,
+  });
 
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        /// Login Cubit Provider
+        // ===============================
+        // AUTH GLOBAL
+        // ===============================
+        BlocProvider.value(value: authCubit..checkAuthStatus()),
+
+        // ===============================
+        // LOGIN
+        // ===============================
         BlocProvider(create: (_) => LoginCubit(LoginUser(authRepository))),
 
-        /// OTP Cubit Provider
+        // ===============================
+        // OTP
+        // ===============================
         BlocProvider(create: (_) => OtpCubit(OtpVerify(authRepository))),
       ],
       child: MaterialApp.router(
         debugShowCheckedModeBanner: false,
         title: 'Absensi Karyawan',
         theme: AppTheme.lightTheme,
-        routerConfig: AppRouter.router,
+
+        // 🔐 ROUTER GUARD AKTIF
+        routerConfig: AppRouter.router(authCubit),
       ),
     );
   }

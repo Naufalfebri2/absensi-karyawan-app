@@ -17,17 +17,29 @@ class LoginCubit extends Cubit<LoginState> {
       final result = await loginUser(username: username, password: password);
 
       if (result['success'] == true) {
+        final int userId = result['user_id'] ?? 0;
+        final String tempToken = result['temp_token'] ?? '';
+
+        if (tempToken.isEmpty) {
+          emit(LoginError("Gagal memproses login. Silakan coba kembali."));
+          return;
+        }
+
+        emit(LoginSuccess(userId: userId, tempToken: tempToken));
+      } else {
         emit(
-          LoginSuccess(
-            userId: result['user_id'],
-            tempToken: result['temp_token'],
+          LoginError(
+            result['message']?.toString() ??
+                "Username atau password tidak valid.",
           ),
         );
-      } else {
-        emit(LoginError(result['message'] ?? "Login gagal"));
       }
-    } catch (e) {
-      emit(LoginError("Terjadi kesalahan: $e"));
+    } catch (_) {
+      emit(
+        LoginError(
+          "Tidak dapat terhubung ke server. Periksa koneksi internet Anda.",
+        ),
+      );
     }
   }
 }

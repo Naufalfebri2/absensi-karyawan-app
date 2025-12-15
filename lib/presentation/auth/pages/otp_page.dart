@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+
 import '../bloc/otp_cubit.dart';
 import '../bloc/otp_state.dart';
-import 'package:go_router/go_router.dart';
 
 class OtpPage extends StatefulWidget {
   final String email;
@@ -14,69 +15,75 @@ class OtpPage extends StatefulWidget {
 }
 
 class _OtpPageState extends State<OtpPage> {
-  final List<TextEditingController> controllers = List.generate(
+  final List<TextEditingController> _controllers = List.generate(
     6,
     (_) => TextEditingController(),
   );
-  final List<FocusNode> focusNodes = List.generate(6, (_) => FocusNode());
+  final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
 
-  // late final int userId = widget.userId;
-  // late final String tempToken = widget.tempToken;
+  bool _submitted = false;
 
   @override
   void dispose() {
-    for (var c in controllers) {
+    for (final c in _controllers) {
       c.dispose();
     }
-    for (var f in focusNodes) {
+    for (final f in _focusNodes) {
       f.dispose();
     }
     super.dispose();
   }
 
-  void submitOtp() {
-    String otpCode = controllers.map((c) => c.text.trim()).join("");
+  void _submitOtp() {
+    if (_submitted) return;
 
-    if (otpCode.length < 6) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Masukkan 6 digit OTP")));
+    final otpCode = _controllers.map((c) => c.text.trim()).join();
+
+    if (otpCode.length != 6) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text("Masukkan 6 digit kode OTP"),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       return;
     }
 
+    _submitted = true;
+
     context.read<OtpCubit>().submitOtp(
-      email: AutofillHints.email,
+      email: widget.email, // ✅ FIX BUG
       otp: otpCode,
-      // tempToken: tempToken,
     );
   }
 
-  Widget buildOtpBox(int index) {
+  Widget _buildOtpBox(int index) {
     return SizedBox(
-      width: 50,
-      height: 60,
+      width: 48,
+      height: 58,
       child: TextField(
-        controller: controllers[index],
-        focusNode: focusNodes[index],
+        controller: _controllers[index],
+        focusNode: _focusNodes[index],
         keyboardType: TextInputType.number,
         textAlign: TextAlign.center,
-        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         maxLength: 1,
+        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         decoration: InputDecoration(
           counterText: "",
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
         ),
         onChanged: (value) {
           if (value.isNotEmpty && index < 5) {
-            focusNodes[index + 1].requestFocus();
+            _focusNodes[index + 1].requestFocus();
           }
           if (value.isEmpty && index > 0) {
-            focusNodes[index - 1].requestFocus();
+            _focusNodes[index - 1].requestFocus();
           }
 
-          // Auto-submit ketika angka ke-6 diisi
           if (index == 5 && value.isNotEmpty) {
-            submitOtp();
+            _submitOtp();
           }
         },
       ),
@@ -88,18 +95,30 @@ class _OtpPageState extends State<OtpPage> {
     return Scaffold(
       appBar: AppBar(title: const Text("Verifikasi OTP")),
       body: BlocConsumer<OtpCubit, OtpState>(
+        listenWhen: (prev, curr) => curr is OtpSuccess || curr is OtpError,
         listener: (context, state) {
+          _submitted = false;
+
           if (state is OtpSuccess) {
             context.go('/home');
-          } else if (state is OtpError) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(state.message)));
+          }
+
+          if (state is OtpError) {
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
           }
         },
         builder: (context, state) {
+          final isLoading = state is OtpLoading;
+
           return Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -107,41 +126,48 @@ class _OtpPageState extends State<OtpPage> {
                   "Masukkan Kode OTP",
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 10),
-                Text(
-                  "Kode OTP telah dikirim ke email / nomor Anda",
+                const SizedBox(height: 8),
+                const Text(
+                  "Kode OTP telah dikirim ke email Anda",
                   style: TextStyle(fontSize: 14, color: Colors.grey),
                 ),
-
-                const SizedBox(height: 30),
-
+                const SizedBox(height: 32),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: List.generate(6, (i) => buildOtpBox(i)),
+                  children: List.generate(6, _buildOtpBox),
                 ),
-
-                const SizedBox(height: 30),
-
+                const SizedBox(height: 32),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: state is OtpLoading ? null : submitOtp,
-                    child: state is OtpLoading
-                        ? const CircularProgressIndicator()
+                    onPressed: isLoading ? null : _submitOtp,
+                    child: isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
                         : const Text("Verifikasi"),
                   ),
                 ),
-
                 const SizedBox(height: 20),
-
                 TextButton(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Fitur resend belum diaktifkan"),
-                      ),
-                    );
-                  },
+                  onPressed: isLoading
+                      ? null
+                      : () {
+                          ScaffoldMessenger.of(context)
+                            ..hideCurrentSnackBar()
+                            ..showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  "Fitur kirim ulang OTP belum tersedia",
+                                ),
+                              ),
+                            );
+                        },
                   child: const Text("Kirim ulang OTP"),
                 ),
               ],
