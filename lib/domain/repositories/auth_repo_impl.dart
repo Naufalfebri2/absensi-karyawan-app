@@ -13,10 +13,26 @@ class AuthRepoImpl implements AuthRepo {
   @override
   Future<Map<String, dynamic>> verifyOtp({
     required String email,
-    required String otp
+    required String otp,
   }) async {
-    return await AuthServivce.verifyOtp(
-      email, otp
+    return await AuthServivce.verifyOtp(email, otp);
+  }
+
+  @override
+  Future<Map<String, dynamic>> forgotPassword({required String email}) async {
+    return await AuthServivce.forgotPassword(email);
+  }
+
+  @override
+  Future<Map<String, dynamic>> resetPassword({
+    required String email,
+    required String password,
+    required String confirmPassword,
+  }) async {
+    return await AuthServivce.resetPassword(
+      email: email,
+      password: password,
+      confirmPassword: confirmPassword,
     );
   }
 }

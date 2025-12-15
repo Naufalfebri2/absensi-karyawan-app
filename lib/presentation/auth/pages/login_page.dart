@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:absensi_karyawan_app/config/constants/app_image.dart';
 import '../bloc/login_cubit.dart';
 import '../bloc/login_state.dart';
+import '../bloc/otp_purpose.dart';
 import '../widgets/login_form.dart';
 
 class LoginPage extends StatelessWidget {
@@ -15,13 +16,14 @@ class LoginPage extends StatelessWidget {
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: const Color(0xFFF2F2F2),
       body: SafeArea(
         child: GestureDetector(
           onTap: () => FocusScope.of(context).unfocus(),
           child: Stack(
             children: [
-              // ===== TOP GRADIENT =====
+              // ================= TOP GRADIENT =================
               Container(
                 height: size.height * 0.42,
                 decoration: const BoxDecoration(
@@ -33,24 +35,24 @@ class LoginPage extends StatelessWidget {
                       Color(0xFF624731),
                       Color(0xFF957158),
                     ],
-                    stops: [0.02, 0.51, 1.0],
                   ),
                 ),
               ),
 
-              // ============ CARD PUTIH ============ //
+              // ================= CARD =================
               Align(
                 alignment: Alignment.bottomCenter,
                 child: BlocListener<LoginCubit, LoginState>(
-                  listenWhen: (previous, current) =>
-                      current is LoginSuccess || current is LoginError,
+                  listenWhen: (prev, curr) =>
+                      curr is LoginSuccess || curr is LoginError,
                   listener: (context, state) {
                     if (state is LoginSuccess) {
+                      // ✅ PINDAH KE OTP PAGE
                       context.go(
                         '/otp',
                         extra: {
-                          'user_id': state.userId,
-                          'temp_token': state.tempToken,
+                          'email': state.email,
+                          'purpose': OtpPurpose.login,
                         },
                       );
                     }
@@ -66,50 +68,48 @@ class LoginPage extends StatelessWidget {
                         );
                     }
                   },
-                  child: SingleChildScrollView(
-                    child: Container(
-                      width: double.infinity,
-                      margin: EdgeInsets.only(
-                        left: 30,
-                        right: 30,
-                        top: size.height * 0.21,
-                        bottom: 16,
-                      ),
-                      padding: const EdgeInsets.fromLTRB(24, 70, 24, 32),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(32),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.25),
-                            blurRadius: 4,
-                            offset: const Offset(0, 4),
+                  child: Container(
+                    width: double.infinity,
+                    margin: EdgeInsets.only(
+                      left: 2,
+                      right: 2,
+                      top: size.height * 0.21,
+                      bottom: 16,
+                    ),
+                    padding: const EdgeInsets.fromLTRB(24, 32, 24, 32),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(32),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.25),
+                          blurRadius: 4,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        const Text(
+                          'Welcome Back!',
+                          style: TextStyle(
+                            fontSize: 35,
+                            fontWeight: FontWeight.w700,
                           ),
-                        ],
-                      ),
-                      child: const Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'Welcome Back!',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.black,
-                            ),
-                          ),
-                          SizedBox(height: 80),
-                          LoginForm(), // submit ditangani di widget ini
-                        ],
-                      ),
+                        ),
+                        const SizedBox(height: 60),
+                        const Expanded(
+                          child: SingleChildScrollView(child: LoginForm()),
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
 
-              // ============ LOGO ============ //
+              // ================= LOGO =================
               Positioned(
-                top: size.height * 0.09,
+                top: 90,
                 left: 0,
                 right: 0,
                 child: Center(
@@ -128,9 +128,7 @@ class LoginPage extends StatelessWidget {
                       ],
                     ),
                     padding: const EdgeInsets.all(8),
-                    child: ClipOval(
-                      child: Image.asset(AppImages.logo, fit: BoxFit.cover),
-                    ),
+                    child: ClipOval(child: Image.asset(AppImages.logo)),
                   ),
                 ),
               ),

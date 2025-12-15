@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../bloc/login_cubit.dart';
 import '../bloc/login_state.dart';
-
+import '../bloc/otp_purpose.dart';
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
@@ -16,7 +16,7 @@ class LoginForm extends StatefulWidget {
 class _LoginFormState extends State<LoginForm> {
   final _formKey = GlobalKey<FormState>();
 
-  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
   bool _rememberMe = false;
@@ -24,7 +24,7 @@ class _LoginFormState extends State<LoginForm> {
 
   @override
   void dispose() {
-    _usernameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -33,7 +33,7 @@ class _LoginFormState extends State<LoginForm> {
     if (!_formKey.currentState!.validate()) return;
 
     context.read<LoginCubit>().submitLogin(
-      username: _usernameController.text.trim(),
+      username: _emailController.text.trim(),
       password: _passwordController.text.trim(),
     );
   }
@@ -41,19 +41,33 @@ class _LoginFormState extends State<LoginForm> {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<LoginCubit, LoginState>(
+      listenWhen: (prev, curr) => curr is LoginSuccess || curr is LoginError,
       listener: (context, state) {
-        if (state is LoginError) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(state.message)));
-        }
-
+        // ===============================
+        // LOGIN SUCCESS → OTP PAGE
+        // ===============================
         if (state is LoginSuccess) {
-          /// Pindah ke OTP page membawa userId & tempToken
           context.go(
             '/otp',
-            extra: {"user_id": state.userId, "temp_token": state.tempToken},
+            extra: {
+              'email': _emailController.text.trim(),
+              'purpose': OtpPurpose.login,
+            },
           );
+        }
+
+        // ===============================
+        // LOGIN ERROR
+        // ===============================
+        if (state is LoginError) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
         }
       },
       builder: (context, state) {
@@ -64,22 +78,34 @@ class _LoginFormState extends State<LoginForm> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // ===== USERNAME =====
+              // ===============================
+              // EMAIL
+              // ===============================
               TextFormField(
-                controller: _usernameController,
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
                   labelText: 'Email',
-                  hintText: 'Masukkan Email',
+                  hintText: 'Masukkan email',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                validator: (value) =>
-                    value!.isEmpty ? 'Username tidak boleh kosong' : null,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Email tidak boleh kosong';
+                  }
+                  if (!value.contains('@')) {
+                    return 'Format email tidak valid';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
 
-              // ===== PASSWORD =====
+              // ===============================
+              // PASSWORD
+              // ===============================
               TextFormField(
                 controller: _passwordController,
                 obscureText: _obscurePassword,
@@ -96,26 +122,43 @@ class _LoginFormState extends State<LoginForm> {
                           : Icons.visibility,
                     ),
                     onPressed: () {
-                      setState(() => _obscurePassword = !_obscurePassword);
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
                     },
                   ),
                 ),
-                validator: (value) =>
-                    value!.length < 6 ? 'Minimal 6 karakter' : null,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Password tidak boleh kosong';
+                  }
+                  if (value.length < 6) {
+                    return 'Minimal 6 karakter';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 12),
 
-              // ===== REMEMBER ME + LUPA PASSWORD =====
+              // ===============================
+              // REMEMBER ME & FORGOT PASSWORD
+              // ===============================
               Row(
                 children: [
                   Checkbox(
                     value: _rememberMe,
-                    onChanged: (v) => setState(() => _rememberMe = v!),
+                    onChanged: (value) {
+                      setState(() {
+                        _rememberMe = value ?? false;
+                      });
+                    },
                   ),
                   const Text('Remember me', style: TextStyle(fontSize: 13)),
                   const Spacer(),
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      context.go('/forgot-password');
+                    },
                     child: const Text(
                       'Lupa password?',
                       style: TextStyle(fontSize: 13),
@@ -125,7 +168,9 @@ class _LoginFormState extends State<LoginForm> {
               ),
               const SizedBox(height: 20),
 
-              // ===== LOGIN BUTTON =====
+              // ===============================
+              // LOGIN BUTTON
+              // ===============================
               SizedBox(
                 height: 48,
                 child: ElevatedButton(
@@ -146,7 +191,7 @@ class _LoginFormState extends State<LoginForm> {
                           ),
                         )
                       : const Text(
-                          "Login",
+                          'Login',
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w600,

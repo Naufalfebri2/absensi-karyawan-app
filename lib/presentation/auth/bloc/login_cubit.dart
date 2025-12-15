@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'login_state.dart';
 import '../../../domain/usecases/auth/login_user.dart';
+import 'login_state.dart';
 
 class LoginCubit extends Cubit<LoginState> {
   final LoginUser loginUser;
@@ -25,12 +25,17 @@ class LoginCubit extends Cubit<LoginState> {
           return;
         }
 
-        emit(LoginSuccess(userId: userId, tempToken: tempToken));
+        emit(
+          LoginSuccess(
+            email: username, // 🔥 KUNCI UTAMA
+            userId: userId,
+            tempToken: tempToken,
+          ),
+        );
       } else {
         emit(
           LoginError(
-            result['message']?.toString() ??
-                "Username atau password tidak valid.",
+            result['message']?.toString() ?? "Email atau password tidak valid",
           ),
         );
       }

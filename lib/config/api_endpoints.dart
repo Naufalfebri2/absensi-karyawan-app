@@ -6,6 +6,8 @@ class ApiEndpoint {
   static const String logout = '/logout';
   static const String verifyOtp = '/verify-otp';
   static const String profile = '/profile';
+  static const String forgotPassword = "/forgot-password";
+  static const String resetPassword = "/reset-password";
 
   // ===============================
   // (SIAP UNTUK SCALE KE DEPAN)

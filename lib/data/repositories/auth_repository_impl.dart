@@ -17,11 +17,27 @@ class AuthRepositoryImpl implements AuthRepo {
   @override
   Future<Map<String, dynamic>> verifyOtp({
     required String email,
-    required String otp
+    required String otp,
   }) {
-    return remote.verifyOtp(
+    return remote.verifyOtp(email: email, otp: otp);
+  }
+
+  // 🔴 INI YANG DICARI ERROR
+  @override
+  Future<Map<String, dynamic>> forgotPassword({required String email}) {
+    return remote.forgotPassword(email: email);
+  }
+
+  @override
+  Future<Map<String, dynamic>> resetPassword({
+    required String email,
+    required String password,
+    required String confirmPassword,
+  }) {
+    return remote.resetPassword(
       email: email,
-      otp: otp
+      password: password,
+      confirmPassword: confirmPassword,
     );
   }
 }

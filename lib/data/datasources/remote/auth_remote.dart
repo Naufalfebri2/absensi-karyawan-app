@@ -43,7 +43,6 @@ class AuthRemote {
 
       return response.data;
     } on DioException catch (e) {
-      // Standardisasi error agar Cubit rapi
       return {
         "success": false,
         "message": e.response?.data['message'] ?? "Gagal terhubung ke server",
@@ -71,6 +70,56 @@ class AuthRemote {
       return {
         "success": false,
         "message": e.response?.data['message'] ?? "Verifikasi OTP gagal",
+      };
+    } catch (_) {
+      return {"success": false, "message": "Terjadi kesalahan pada aplikasi"};
+    }
+  }
+
+  // ===============================
+  // FORGOT PASSWORD (GENERATE OTP)
+  // ===============================
+  Future<Map<String, dynamic>> forgotPassword({required String email}) async {
+    try {
+      final response = await dio.post(
+        ApiEndpoint.forgotPassword,
+        data: {"email": email},
+      );
+
+      return response.data;
+    } on DioException catch (e) {
+      return {
+        "success": false,
+        "message": e.response?.data['message'] ?? "Gagal mengirim OTP",
+      };
+    } catch (_) {
+      return {"success": false, "message": "Terjadi kesalahan pada aplikasi"};
+    }
+  }
+
+  // ===============================
+  // RESET PASSWORD
+  // ===============================
+  Future<Map<String, dynamic>> resetPassword({
+    required String email,
+    required String password,
+    required String confirmPassword,
+  }) async {
+    try {
+      final response = await dio.post(
+        ApiEndpoint.resetPassword,
+        data: {
+          "email": email,
+          "password": password,
+          "password_confirmation": confirmPassword,
+        },
+      );
+
+      return response.data;
+    } on DioException catch (e) {
+      return {
+        "success": false,
+        "message": e.response?.data['message'] ?? "Gagal reset password",
       };
     } catch (_) {
       return {"success": false, "message": "Terjadi kesalahan pada aplikasi"};

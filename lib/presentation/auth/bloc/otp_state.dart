@@ -13,5 +13,6 @@ class OtpSuccess extends OtpState {
 
 class OtpError extends OtpState {
   final String message;
+
   OtpError(this.message);
 }

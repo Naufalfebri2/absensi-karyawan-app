@@ -4,11 +4,13 @@ import 'package:go_router/go_router.dart';
 
 import '../bloc/otp_cubit.dart';
 import '../bloc/otp_state.dart';
+import '../bloc/otp_purpose.dart';
 
 class OtpPage extends StatefulWidget {
   final String email;
+  final OtpPurpose purpose;
 
-  const OtpPage({super.key, required this.email});
+  const OtpPage({super.key, required this.email, required this.purpose});
 
   @override
   State<OtpPage> createState() => _OtpPageState();
@@ -34,6 +36,23 @@ class _OtpPageState extends State<OtpPage> {
     super.dispose();
   }
 
+  // ===============================
+  // HELPER: MASK EMAIL
+  // ===============================
+  String _maskEmail(String email) {
+    final parts = email.split('@');
+    if (parts.length != 2) return email;
+
+    final name = parts[0];
+    final domain = parts[1];
+
+    if (name.length <= 2) return '***@$domain';
+    return '${name.substring(0, 2)}****@$domain';
+  }
+
+  // ===============================
+  // SUBMIT OTP
+  // ===============================
   void _submitOtp() {
     if (_submitted) return;
 
@@ -54,11 +73,15 @@ class _OtpPageState extends State<OtpPage> {
     _submitted = true;
 
     context.read<OtpCubit>().submitOtp(
-      email: widget.email, // ✅ FIX BUG
+      email: widget.email,
       otp: otpCode,
+      purpose: widget.purpose,
     );
   }
 
+  // ===============================
+  // OTP BOX
+  // ===============================
   Widget _buildOtpBox(int index) {
     return SizedBox(
       width: 48,
@@ -77,11 +100,11 @@ class _OtpPageState extends State<OtpPage> {
         onChanged: (value) {
           if (value.isNotEmpty && index < 5) {
             _focusNodes[index + 1].requestFocus();
-          }
-          if (value.isEmpty && index > 0) {
+          } else if (value.isEmpty && index > 0) {
             _focusNodes[index - 1].requestFocus();
           }
 
+          // Auto submit saat digit ke-6
           if (index == 5 && value.isNotEmpty) {
             _submitOtp();
           }
@@ -99,11 +122,26 @@ class _OtpPageState extends State<OtpPage> {
         listener: (context, state) {
           _submitted = false;
 
+          // ===============================
+          // SUCCESS
+          // ===============================
           if (state is OtpSuccess) {
-            context.go('/home');
+            if (widget.purpose == OtpPurpose.login) {
+              context.go('/home');
+            } else {
+              context.go('/reset-password', extra: {'email': widget.email});
+            }
           }
 
+          // ===============================
+          // ERROR → CLEAR OTP
+          // ===============================
           if (state is OtpError) {
+            for (final c in _controllers) {
+              c.clear();
+            }
+            _focusNodes.first.requestFocus();
+
             ScaffoldMessenger.of(context)
               ..hideCurrentSnackBar()
               ..showSnackBar(
@@ -127,9 +165,10 @@ class _OtpPageState extends State<OtpPage> {
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  "Kode OTP telah dikirim ke email Anda",
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                Text(
+                  "Kode OTP telah dikirim ke ${_maskEmail(widget.email)}",
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                  textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 32),
                 Row(
