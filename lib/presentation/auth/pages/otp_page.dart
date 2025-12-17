@@ -5,12 +5,19 @@ import 'package:go_router/go_router.dart';
 import '../bloc/otp_cubit.dart';
 import '../bloc/otp_state.dart';
 import '../bloc/otp_purpose.dart';
+import '../bloc/auth_cubit.dart'; // 🔥 WAJIB
 
 class OtpPage extends StatefulWidget {
   final String email;
+  final String tempToken;
   final OtpPurpose purpose;
 
-  const OtpPage({super.key, required this.email, required this.purpose});
+  const OtpPage({
+    super.key,
+    required this.email,
+    required this.tempToken,
+    required this.purpose,
+  });
 
   @override
   State<OtpPage> createState() => _OtpPageState();
@@ -37,7 +44,7 @@ class _OtpPageState extends State<OtpPage> {
   }
 
   // ===============================
-  // HELPER: MASK EMAIL
+  // MASK EMAIL
   // ===============================
   String _maskEmail(String email) {
     final parts = email.split('@');
@@ -75,6 +82,7 @@ class _OtpPageState extends State<OtpPage> {
     context.read<OtpCubit>().submitOtp(
       email: widget.email,
       otp: otpCode,
+      tempToken: widget.tempToken,
       purpose: widget.purpose,
     );
   }
@@ -104,7 +112,6 @@ class _OtpPageState extends State<OtpPage> {
             _focusNodes[index - 1].requestFocus();
           }
 
-          // Auto submit saat digit ke-6
           if (index == 5 && value.isNotEmpty) {
             _submitOtp();
           }
@@ -127,14 +134,19 @@ class _OtpPageState extends State<OtpPage> {
           // ===============================
           if (state is OtpSuccess) {
             if (widget.purpose == OtpPurpose.login) {
-              context.go('/home');
+              // 🔥 SET AUTH STATE
+              context.read<AuthCubit>().setAuthenticated(
+                token: state.token,
+                user: state.user,
+              );
+              // ❌ JANGAN NAVIGATE MANUAL
             } else {
               context.go('/reset-password', extra: {'email': widget.email});
             }
           }
 
           // ===============================
-          // ERROR → CLEAR OTP
+          // ERROR
           // ===============================
           if (state is OtpError) {
             for (final c in _controllers) {

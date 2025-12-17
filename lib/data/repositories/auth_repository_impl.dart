@@ -6,6 +6,7 @@ class AuthRepositoryImpl implements AuthRepo {
 
   AuthRepositoryImpl(this.remote);
 
+  // ================= LOGIN =================
   @override
   Future<Map<String, dynamic>> loginUser({
     required String username,
@@ -14,20 +15,27 @@ class AuthRepositoryImpl implements AuthRepo {
     return remote.login(username: username, password: password);
   }
 
+  // ================= OTP VERIFY =================
   @override
   Future<Map<String, dynamic>> verifyOtp({
     required String email,
     required String otp,
+    required String tempToken, // 🔥 WAJIB
   }) {
-    return remote.verifyOtp(email: email, otp: otp);
+    return remote.verifyOtp(
+      email: email,
+      otp: otp,
+      tempToken: tempToken, // 🔥 diteruskan dengan benar
+    );
   }
 
-  // 🔴 INI YANG DICARI ERROR
+  // ================= FORGOT PASSWORD =================
   @override
   Future<Map<String, dynamic>> forgotPassword({required String email}) {
     return remote.forgotPassword(email: email);
   }
 
+  // ================= RESET PASSWORD =================
   @override
   Future<Map<String, dynamic>> resetPassword({
     required String email,

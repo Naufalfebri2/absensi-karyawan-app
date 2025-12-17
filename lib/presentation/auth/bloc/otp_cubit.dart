@@ -12,12 +12,17 @@ class OtpCubit extends Cubit<OtpState> {
   Future<void> submitOtp({
     required String email,
     required String otp,
+    required String tempToken, // 🔥 WAJIB
     required OtpPurpose purpose,
   }) async {
     emit(OtpLoading());
 
     try {
-      final result = await verifyUsecase(email: email, otp: otp);
+      final result = await verifyUsecase(
+        email: email,
+        otp: otp,
+        tempToken: tempToken, // 🔥 KIRIM KE BACKEND
+      );
 
       if (result['success'] == true) {
         // ================= LOGIN OTP =================

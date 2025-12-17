@@ -34,3 +34,16 @@ class AuthAuthenticated extends AuthState {
 /// UNAUTHENTICATED STATE
 /// ===============================
 class AuthUnauthenticated extends AuthState {}
+
+/// ===============================
+/// 🔥 OTP REQUIRED STATE (INI KUNCI)
+/// ===============================
+class AuthOtpRequired extends AuthState {
+  final String email;
+  final String tempToken;
+
+  const AuthOtpRequired({required this.email, required this.tempToken});
+
+  @override
+  List<Object?> get props => [email, tempToken];
+}

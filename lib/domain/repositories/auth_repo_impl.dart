@@ -2,6 +2,7 @@ import '../../core/services/auth_servivce.dart';
 import 'auth_repo.dart';
 
 class AuthRepoImpl implements AuthRepo {
+  // ================= LOGIN =================
   @override
   Future<Map<String, dynamic>> loginUser({
     required String username,
@@ -10,19 +11,27 @@ class AuthRepoImpl implements AuthRepo {
     return await AuthServivce.login(username, password);
   }
 
+  // ================= OTP VERIFY =================
   @override
   Future<Map<String, dynamic>> verifyOtp({
     required String email,
     required String otp,
+    required String tempToken, // 🔥 WAJIB
   }) async {
-    return await AuthServivce.verifyOtp(email, otp);
+    return await AuthServivce.verifyOtp(
+      email: email,
+      otp: otp,
+      tempToken: tempToken, // 🔥 diteruskan
+    );
   }
 
+  // ================= FORGOT PASSWORD =================
   @override
   Future<Map<String, dynamic>> forgotPassword({required String email}) async {
     return await AuthServivce.forgotPassword(email);
   }
 
+  // ================= RESET PASSWORD =================
   @override
   Future<Map<String, dynamic>> resetPassword({
     required String email,

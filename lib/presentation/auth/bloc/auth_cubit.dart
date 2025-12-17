@@ -31,6 +31,13 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   /// ===============================
+  /// 🔥 OTP REQUIRED (SEBELUM LOGIN)
+  /// ===============================
+  void requireOtp({required String email, required String tempToken}) {
+    emit(AuthOtpRequired(email: email, tempToken: tempToken));
+  }
+
+  /// ===============================
   /// SET AUTH AFTER OTP SUCCESS
   /// ===============================
   Future<void> setAuthenticated({

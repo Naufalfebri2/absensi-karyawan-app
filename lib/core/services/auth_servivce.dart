@@ -13,12 +13,20 @@ class AuthServivce {
   }
 
   // ===============================
-  // VERIFY OTP
+  // VERIFY OTP (LOGIN / FORGOT PASSWORD)
   // ===============================
-  static Future<dynamic> verifyOtp(String email, String otp) {
+  static Future<dynamic> verifyOtp({
+    required String email,
+    required String otp,
+    required String tempToken, // 🔥 WAJIB
+  }) {
     return ApiService.post(
       ApiEndpoint.verifyOtp,
-      body: {'email': email, 'otp': otp},
+      body: {
+        'email': email,
+        'otp': otp,
+        'temp_token': tempToken, // 🔥 dikirim ke backend
+      },
     );
   }
 
@@ -39,7 +47,10 @@ class AuthServivce {
     );
   }
 
-  static Future resetPassword({
+  // ===============================
+  // RESET PASSWORD
+  // ===============================
+  static Future<dynamic> resetPassword({
     required String email,
     required String password,
     required String confirmPassword,

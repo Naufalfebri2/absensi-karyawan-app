@@ -53,16 +53,21 @@ class AuthRemote {
   }
 
   // ===============================
-  // VERIFY OTP
+  // VERIFY OTP (LOGIN / FORGOT PASSWORD)
   // ===============================
   Future<Map<String, dynamic>> verifyOtp({
     required String email,
     required String otp,
+    required String tempToken, // 🔥 WAJIB
   }) async {
     try {
       final response = await dio.post(
         ApiEndpoint.verifyOtp,
-        data: {"email": email, "otp": otp},
+        data: {
+          "email": email,
+          "otp": otp,
+          "temp_token": tempToken, // 🔥 KUNCI OTP LOGIN
+        },
       );
 
       return response.data;

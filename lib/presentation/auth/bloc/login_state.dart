@@ -1,22 +1,30 @@
 abstract class LoginState {}
 
+/// ===============================
+/// INITIAL
+/// ===============================
 class LoginInitial extends LoginState {}
 
+/// ===============================
+/// LOADING
+/// ===============================
 class LoginLoading extends LoginState {}
 
-class LoginSuccess extends LoginState {
+/// ===============================
+/// LOGIN VALID → OTP REQUIRED
+/// ===============================
+class LoginOtpRequired extends LoginState {
   final String email;
-  final int userId;
   final String tempToken;
 
-  LoginSuccess({
-    required this.email,
-    required this.userId,
-    required this.tempToken,
-  });
+  LoginOtpRequired({required this.email, required this.tempToken});
 }
 
+/// ===============================
+/// ERROR
+/// ===============================
 class LoginError extends LoginState {
   final String message;
+
   LoginError(this.message);
 }

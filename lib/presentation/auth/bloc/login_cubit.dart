@@ -16,33 +16,28 @@ class LoginCubit extends Cubit<LoginState> {
     try {
       final result = await loginUser(username: username, password: password);
 
-      if (result['success'] == true) {
-        final int userId = result['user_id'] ?? 0;
-        final String tempToken = result['temp_token'] ?? '';
-
-        if (tempToken.isEmpty) {
-          emit(LoginError("Gagal memproses login. Silakan coba kembali."));
-          return;
-        }
-
+      // ✅ BACKEND KAMU PAKAI MESSAGE, BUKAN success
+      if (result['message'] != null &&
+          result['message'].toString().toLowerCase().contains('otp')) {
         emit(
-          LoginSuccess(
-            email: username, // 🔥 KUNCI UTAMA
-            userId: userId,
-            tempToken: tempToken,
+          LoginOtpRequired(
+            email: result['email'] ?? username,
+            tempToken: '', // backend tidak pakai temp_token
           ),
         );
-      } else {
-        emit(
-          LoginError(
-            result['message']?.toString() ?? "Email atau password tidak valid",
-          ),
-        );
+        return;
       }
-    } catch (_) {
+
+      // ❌ LOGIN GAGAL
       emit(
         LoginError(
-          "Tidak dapat terhubung ke server. Periksa koneksi internet Anda.",
+          result['message']?.toString() ?? 'Email atau password tidak valid',
+        ),
+      );
+    } catch (e) {
+      emit(
+        LoginError(
+          'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.',
         ),
       );
     }
