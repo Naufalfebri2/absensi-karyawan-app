@@ -12,26 +12,26 @@ class OtpCubit extends Cubit<OtpState> {
   Future<void> submitOtp({
     required String email,
     required String otp,
-    required String tempToken, // 🔥 WAJIB
     required OtpPurpose purpose,
   }) async {
     emit(OtpLoading());
 
     try {
-      final result = await verifyUsecase(
-        email: email,
-        otp: otp,
-        tempToken: tempToken, // 🔥 KIRIM KE BACKEND
-      );
+      final result = await verifyUsecase(email: email, otp: otp);
 
-      if (result['success'] == true) {
+      // BACKEND PAKAI MESSAGE SEBAGAI INDIKATOR SUKSES
+      final message = result['message']?.toString().toLowerCase() ?? '';
+
+      if (message.contains('berhasil') || message.contains('success')) {
         // ================= LOGIN OTP =================
         if (purpose == OtpPurpose.login) {
           final token = result['token'];
           final user = result['user'];
 
           if (token == null || token.toString().isEmpty) {
-            emit(OtpError("Verifikasi berhasil tetapi token tidak ditemukan"));
+            emit(
+              OtpError("Verifikasi OTP berhasil, tetapi token tidak ditemukan"),
+            );
             return;
           }
 

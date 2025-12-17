@@ -15,9 +15,8 @@ class LoginLoading extends LoginState {}
 /// ===============================
 class LoginOtpRequired extends LoginState {
   final String email;
-  final String tempToken;
 
-  LoginOtpRequired({required this.email, required this.tempToken});
+  LoginOtpRequired({required this.email});
 }
 
 /// ===============================

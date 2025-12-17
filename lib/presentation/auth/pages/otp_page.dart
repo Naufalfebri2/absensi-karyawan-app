@@ -5,19 +5,13 @@ import 'package:go_router/go_router.dart';
 import '../bloc/otp_cubit.dart';
 import '../bloc/otp_state.dart';
 import '../bloc/otp_purpose.dart';
-import '../bloc/auth_cubit.dart'; // 🔥 WAJIB
+import '../bloc/auth_cubit.dart';
 
 class OtpPage extends StatefulWidget {
   final String email;
-  final String tempToken;
   final OtpPurpose purpose;
 
-  const OtpPage({
-    super.key,
-    required this.email,
-    required this.tempToken,
-    required this.purpose,
-  });
+  const OtpPage({super.key, required this.email, required this.purpose});
 
   @override
   State<OtpPage> createState() => _OtpPageState();
@@ -82,7 +76,6 @@ class _OtpPageState extends State<OtpPage> {
     context.read<OtpCubit>().submitOtp(
       email: widget.email,
       otp: otpCode,
-      tempToken: widget.tempToken,
       purpose: widget.purpose,
     );
   }

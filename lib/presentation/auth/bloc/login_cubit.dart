@@ -19,12 +19,7 @@ class LoginCubit extends Cubit<LoginState> {
       // ✅ BACKEND KAMU PAKAI MESSAGE, BUKAN success
       if (result['message'] != null &&
           result['message'].toString().toLowerCase().contains('otp')) {
-        emit(
-          LoginOtpRequired(
-            email: result['email'] ?? username,
-            tempToken: '', // backend tidak pakai temp_token
-          ),
-        );
+        emit(LoginOtpRequired(email: result['email'] ?? username));
         return;
       }
 

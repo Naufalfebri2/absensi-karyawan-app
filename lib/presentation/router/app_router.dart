@@ -29,12 +29,24 @@ class AppRouter {
         final authState = authCubit.state;
         final location = state.matchedLocation;
 
+        print('ROUTER STATE => $authState');
+
         final isLogin = location == '/login';
         final isOtp = location == '/otp';
         final isResetPassword = location == '/reset-password';
 
         // ===============================
-        // OTP FLOW (BELUM LOGIN, TAPI OTP)
+        // ✅ SUDAH LOGIN → HOME (HARUS PALING ATAS)
+        // ===============================
+        if (authState is AuthAuthenticated) {
+          if (isLogin || isOtp || isResetPassword) {
+            return '/home';
+          }
+          return null;
+        }
+
+        // ===============================
+        // OTP REQUIRED
         // ===============================
         if (authState is AuthOtpRequired) {
           if (isOtp) return null;
@@ -42,22 +54,10 @@ class AppRouter {
         }
 
         // ===============================
-        // SUDAH LOGIN
-        // ===============================
-        if (authState is AuthAuthenticated) {
-          if (isLogin || isOtp) {
-            return '/home';
-          }
-          return null;
-        }
-
-        // ===============================
         // BELUM LOGIN
         // ===============================
         if (authState is AuthUnauthenticated || authState is AuthInitial) {
-          if (isLogin || isResetPassword) {
-            return null;
-          }
+          if (isLogin || isResetPassword) return null;
           return '/login';
         }
 
@@ -75,7 +75,7 @@ class AppRouter {
         ),
 
         // ===============================
-        // OTP (DATA DARI AUTH STATE)
+        // OTP
         // ===============================
         GoRoute(
           path: '/otp',
@@ -89,11 +89,7 @@ class AppRouter {
 
             return BlocProvider<OtpCubit>(
               create: (context) => OtpCubit(context.read<OtpVerify>()),
-              child: OtpPage(
-                email: authState.email,
-                tempToken: authState.tempToken,
-                purpose: OtpPurpose.login,
-              ),
+              child: OtpPage(email: authState.email, purpose: OtpPurpose.login),
             );
           },
         ),

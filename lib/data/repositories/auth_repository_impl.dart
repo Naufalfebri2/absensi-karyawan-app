@@ -20,13 +20,8 @@ class AuthRepositoryImpl implements AuthRepo {
   Future<Map<String, dynamic>> verifyOtp({
     required String email,
     required String otp,
-    required String tempToken, // 🔥 WAJIB
   }) {
-    return remote.verifyOtp(
-      email: email,
-      otp: otp,
-      tempToken: tempToken, // 🔥 diteruskan dengan benar
-    );
+    return remote.verifyOtp(email: email, otp: otp);
   }
 
   // ================= FORGOT PASSWORD =================

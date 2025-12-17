@@ -41,7 +41,7 @@ class AuthRemote {
         },
       );
 
-      return response.data;
+      return Map<String, dynamic>.from(response.data);
     } on DioException catch (e) {
       return {
         "success": false,
@@ -53,24 +53,19 @@ class AuthRemote {
   }
 
   // ===============================
-  // VERIFY OTP (LOGIN / FORGOT PASSWORD)
+  // VERIFY OTP
   // ===============================
   Future<Map<String, dynamic>> verifyOtp({
     required String email,
     required String otp,
-    required String tempToken, // 🔥 WAJIB
   }) async {
     try {
       final response = await dio.post(
         ApiEndpoint.verifyOtp,
-        data: {
-          "email": email,
-          "otp": otp,
-          "temp_token": tempToken, // 🔥 KUNCI OTP LOGIN
-        },
+        data: {"email": email, "otp_code": otp},
       );
 
-      return response.data;
+      return Map<String, dynamic>.from(response.data);
     } on DioException catch (e) {
       return {
         "success": false,
@@ -82,7 +77,7 @@ class AuthRemote {
   }
 
   // ===============================
-  // FORGOT PASSWORD (GENERATE OTP)
+  // FORGOT PASSWORD
   // ===============================
   Future<Map<String, dynamic>> forgotPassword({required String email}) async {
     try {
@@ -91,7 +86,7 @@ class AuthRemote {
         data: {"email": email},
       );
 
-      return response.data;
+      return Map<String, dynamic>.from(response.data);
     } on DioException catch (e) {
       return {
         "success": false,
@@ -120,7 +115,7 @@ class AuthRemote {
         },
       );
 
-      return response.data;
+      return Map<String, dynamic>.from(response.data);
     } on DioException catch (e) {
       return {
         "success": false,

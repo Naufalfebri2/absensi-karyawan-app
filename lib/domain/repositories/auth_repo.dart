@@ -9,7 +9,6 @@ abstract class AuthRepo {
   Future<Map<String, dynamic>> verifyOtp({
     required String email,
     required String otp,
-    required String tempToken, // 🔥 WAJIB
   });
 
   // ================= FORGOT PASSWORD =================

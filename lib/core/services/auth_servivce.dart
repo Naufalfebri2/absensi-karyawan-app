@@ -1,61 +1,70 @@
 import 'package:absensi_karyawan_app/config/api_endpoints.dart';
 import 'api_service.dart';
 
-class AuthServivce {
+class AuthService {
   // ===============================
   // LOGIN
   // ===============================
-  static Future<dynamic> login(String email, String password) {
-    return ApiService.post(
+  static Future<Map<String, dynamic>> login(
+    String email,
+    String password,
+  ) async {
+    final response = await ApiService.post(
       ApiEndpoint.login,
       body: {'email': email, 'password': password},
     );
+
+    return Map<String, dynamic>.from(response);
   }
 
   // ===============================
-  // VERIFY OTP (LOGIN / FORGOT PASSWORD)
+  // VERIFY OTP
   // ===============================
-  static Future<dynamic> verifyOtp({
+  static Future<Map<String, dynamic>> verifyOtp({
     required String email,
     required String otp,
-    required String tempToken, // 🔥 WAJIB
-  }) {
-    return ApiService.post(
+  }) async {
+    final response = await ApiService.post(
       ApiEndpoint.verifyOtp,
-      body: {
-        'email': email,
-        'otp': otp,
-        'temp_token': tempToken, // 🔥 dikirim ke backend
-      },
+      body: {'email': email, 'otp': otp},
     );
+
+    return Map<String, dynamic>.from(response);
   }
 
   // ===============================
   // FORGOT PASSWORD
   // ===============================
-  static Future<dynamic> forgotPassword(String email) {
-    return ApiService.post(ApiEndpoint.forgotPassword, body: {'email': email});
+  static Future<Map<String, dynamic>> forgotPassword(String email) async {
+    final response = await ApiService.post(
+      ApiEndpoint.forgotPassword,
+      body: {'email': email},
+    );
+
+    return Map<String, dynamic>.from(response);
   }
 
   // ===============================
   // PROFILE
   // ===============================
-  static Future<dynamic> getProfile(String token) {
-    return ApiService.get(
+  static Future<Map<String, dynamic>> getProfile(String token) async {
+    final response = await ApiService.get(
       ApiEndpoint.profile,
       headers: {'Authorization': 'Bearer $token'},
     );
+
+    return Map<String, dynamic>.from(response);
   }
 
   // ===============================
   // RESET PASSWORD
   // ===============================
-  static Future<dynamic> resetPassword({
+  static Future<Map<String, dynamic>> resetPassword({
     required String email,
     required String password,
     required String confirmPassword,
-  }) {
-    return ApiService.post(
+  }) async {
+    final response = await ApiService.post(
       ApiEndpoint.resetPassword,
       body: {
         'email': email,
@@ -63,5 +72,7 @@ class AuthServivce {
         'password_confirmation': confirmPassword,
       },
     );
+
+    return Map<String, dynamic>.from(response);
   }
 }

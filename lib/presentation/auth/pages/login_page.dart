@@ -59,7 +59,6 @@ class LoginPage extends StatelessWidget {
                       if (state is LoginOtpRequired) {
                         context.read<AuthCubit>().requireOtp(
                           email: state.email,
-                          tempToken: state.tempToken,
                         );
                       }
 

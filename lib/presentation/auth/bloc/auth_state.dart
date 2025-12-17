@@ -40,10 +40,9 @@ class AuthUnauthenticated extends AuthState {}
 /// ===============================
 class AuthOtpRequired extends AuthState {
   final String email;
-  final String tempToken;
 
-  const AuthOtpRequired({required this.email, required this.tempToken});
+  const AuthOtpRequired({required this.email});
 
   @override
-  List<Object?> get props => [email, tempToken];
+  List<Object?> get props => [email];
 }
