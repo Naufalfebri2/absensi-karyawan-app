@@ -75,7 +75,7 @@ class _HomePageState extends State<HomePage> {
       /// BOTTOM NAVIGATION BAR
       /// ================================
       bottomNavigationBar: Container(
-        height: 70,
+        // height: 70,
         decoration: const BoxDecoration(
           color: brownColor,
           borderRadius: BorderRadius.only(
