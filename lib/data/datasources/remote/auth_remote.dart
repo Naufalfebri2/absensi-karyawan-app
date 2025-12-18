@@ -60,9 +60,21 @@ class AuthRemote {
     required String otp,
   }) async {
     try {
+      String deviceId = 'unknown';
+      String deviceName = 'unknown';
+
+      if (Platform.isAndroid) {
+        final androidInfo = await _deviceInfo.androidInfo;
+        deviceId = androidInfo.id;
+        deviceName = '${androidInfo.brand} ${androidInfo.model}';
+      } else if (Platform.isIOS) {
+        final iosInfo = await _deviceInfo.iosInfo;
+        deviceId = iosInfo.identifierForVendor ?? 'unknown';
+        deviceName = iosInfo.name;
+      }
       final response = await dio.post(
         ApiEndpoint.verifyOtp,
-        data: {"email": email, "otp_code": otp},
+        data: {"email": email, "otp_code": otp, "device_id": deviceId, "device_name": deviceName},
       );
 
       return Map<String, dynamic>.from(response.data);
