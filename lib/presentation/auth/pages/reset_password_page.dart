@@ -61,7 +61,7 @@ class ResetPasswordPage extends StatelessWidget {
               alignment: Alignment.bottomCenter,
               child: BlocListener<ResetPasswordCubit, ResetPasswordState>(
                 listener: (context, state) async {
-                  // ❌ ERROR
+                  // ERROR
                   if (state is ResetPasswordError) {
                     ScaffoldMessenger.of(context)
                       ..hideCurrentSnackBar()

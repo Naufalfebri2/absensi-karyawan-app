@@ -22,14 +22,8 @@ class LoginUser {
       }
 
       return {'success': false, 'message': 'Gagal terhubung ke server'};
-    }catch (e) {
+    } catch (e) {
       return {'success': false, 'message': 'Terjadi kesalahan tak terduga'};
     }
-    // // Dummy login
-    // if (username == "admin" && password == "admin123") {
-    //   return {'success': true, 'user_id': 1, 'temp_token': 'TEMP-12345'};
-    // }
-
-    // return {'success': false, 'message': "Username atau password salah"};
   }
 }

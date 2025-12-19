@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../domain/usecases/auth/login_user.dart';
 import 'login_state.dart';
 
@@ -14,22 +15,30 @@ class LoginCubit extends Cubit<LoginState> {
     emit(LoginLoading());
 
     try {
-      final result = await loginUser(username: username, password: password);
+      final Map<String, dynamic> result = await loginUser(
+        username: username,
+        password: password,
+      );
 
-      // ✅ BACKEND KAMU PAKAI MESSAGE, BUKAN success
-      if (result['message'] != null &&
-          result['message'].toString().toLowerCase().contains('otp')) {
-        emit(LoginOtpRequired(email: result['email'] ?? username));
+      print('LOGIN RESULT => $result');
+
+      // ===============================
+      // OTP REQUIRED
+      // ===============================
+      if (result['require_otp'] == true) {
+        emit(LoginOtpRequired(email: username));
         return;
       }
 
-      // ❌ LOGIN GAGAL
+      // ===============================
+      // LOGIN FAILED
+      // ===============================
       emit(
         LoginError(
           result['message']?.toString() ?? 'Email atau password tidak valid',
         ),
       );
-    } catch (e) {
+    } catch (_) {
       emit(
         LoginError(
           'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.',

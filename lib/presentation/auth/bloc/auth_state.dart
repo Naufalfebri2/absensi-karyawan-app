@@ -36,7 +36,7 @@ class AuthAuthenticated extends AuthState {
 class AuthUnauthenticated extends AuthState {}
 
 /// ===============================
-/// 🔥 OTP REQUIRED STATE (INI KUNCI)
+/// OTP REQUIRED STATE (INI KUNCI)
 /// ===============================
 class AuthOtpRequired extends AuthState {
   final String email;
