@@ -27,3 +27,13 @@ class LoginError extends LoginState {
 
   LoginError(this.message);
 }
+
+/// ===============================
+/// LOGIN SUCCESS (DIRECT LOGIN)
+/// ===============================
+class LoginSuccess extends LoginState {
+  final String token;
+  final dynamic user;
+
+  LoginSuccess({required this.token, required this.user});
+}

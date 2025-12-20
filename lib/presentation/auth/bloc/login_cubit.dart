@@ -23,21 +23,34 @@ class LoginCubit extends Cubit<LoginState> {
       print('LOGIN RESULT => $result');
 
       // ===============================
-      // OTP REQUIRED
+      // ❌ LOGIN FAILED
       // ===============================
-      if (result['require_otp'] == true) {
-        emit(LoginOtpRequired(email: username));
+      if (result['success'] == false) {
+        emit(
+          LoginError(
+            result['message']?.toString() ?? 'Email atau password tidak valid',
+          ),
+        );
         return;
       }
 
       // ===============================
-      // LOGIN FAILED
+      // ✅ DIRECT LOGIN (BACKEND KIRIM TOKEN)
       // ===============================
-      emit(
-        LoginError(
-          result['message']?.toString() ?? 'Email atau password tidak valid',
-        ),
-      );
+      if (result['token'] != null) {
+        emit(
+          LoginSuccess(
+            token: result['token'].toString(),
+            user: result['data'] ?? {},
+          ),
+        );
+        return;
+      }
+
+      // ===============================
+      // 🔐 OTP FLOW
+      // ===============================
+      emit(LoginOtpRequired(email: username));
     } catch (_) {
       emit(
         LoginError(

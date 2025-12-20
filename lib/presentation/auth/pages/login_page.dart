@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-// import 'package:go_router/go_router.dart';
 
 import 'package:absensi_karyawan_app/config/constants/app_image.dart';
 import '../../../domain/usecases/auth/login_user.dart';
 
-// WAJIB
+// AUTH
 import '../bloc/auth_cubit.dart';
 
+// LOGIN
 import '../bloc/login_cubit.dart';
 import '../bloc/login_state.dart';
-// import '../bloc/otp_purpose.dart';
+
+// UI
 import '../widgets/login_form.dart';
 
 class LoginPage extends StatelessWidget {
@@ -50,19 +51,38 @@ class LoginPage extends StatelessWidget {
                 Align(
                   alignment: Alignment.bottomCenter,
                   child: BlocListener<LoginCubit, LoginState>(
+                    // 🔴 FIX UTAMA: dengarkan SEMUA state penting
                     listenWhen: (prev, curr) =>
-                        curr is LoginOtpRequired || curr is LoginError,
+                        curr is LoginSuccess ||
+                        curr is LoginOtpRequired ||
+                        curr is LoginError,
                     listener: (context, state) {
                       if (!context.mounted) return;
 
-                      // OGIN VALID → OTP
+                      // ===============================
+                      // ✅ LOGIN FINAL (LANGSUNG KE HOME)
+                      // ===============================
+                      if (state is LoginSuccess) {
+                        context.read<AuthCubit>().setAuthenticated(
+                          token: state.token,
+                          user: state.user,
+                        );
+                        return;
+                      }
+
+                      // ===============================
+                      // 🔐 OTP FLOW
+                      // ===============================
                       if (state is LoginOtpRequired) {
                         context.read<AuthCubit>().requireOtp(
                           email: state.email,
                         );
+                        return;
                       }
 
-                      // ERROR LOGIN
+                      // ===============================
+                      // ❌ ERROR LOGIN
+                      // ===============================
                       if (state is LoginError) {
                         ScaffoldMessenger.of(context)
                           ..hideCurrentSnackBar()
