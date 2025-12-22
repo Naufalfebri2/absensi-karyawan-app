@@ -99,7 +99,7 @@ class LoginPage extends StatelessWidget {
                       margin: EdgeInsets.only(
                         left: 2,
                         right: 2,
-                        top: size.height * 0.21,
+                        top: size.height * 0.28,
                         bottom: 16,
                       ),
                       padding: const EdgeInsets.fromLTRB(24, 32, 24, 32),
@@ -123,7 +123,7 @@ class LoginPage extends StatelessWidget {
                               fontWeight: FontWeight.w700,
                             ),
                           ),
-                          SizedBox(height: 60),
+                          SizedBox(height: 40),
                           Expanded(
                             child: SingleChildScrollView(
                               keyboardDismissBehavior:

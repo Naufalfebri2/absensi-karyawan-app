@@ -1,11 +1,11 @@
 import '../../repositories/leave_repository.dart';
 
-class ApproveLeaveUsecase {
+class RejectLeaveUsecase {
   final LeaveRepository repo;
 
-  ApproveLeaveUsecase(this.repo);
+  RejectLeaveUsecase(this.repo);
 
   Future<void> call(int id, String note) {
-    return repo.approveLeave(id, note);
+    return repo.rejectLeave(id, note);
   }
 }
