@@ -44,9 +44,10 @@ class _HomePageState extends State<HomePage> {
         break;
 
       case 2:
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Attendance belum dibuat")),
-        );
+        // ===============================
+        // ATTENDANCE PAGE
+        // ===============================
+        context.push('/attendance');
         break;
 
       case 3:

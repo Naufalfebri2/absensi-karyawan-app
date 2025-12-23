@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:absensi_karyawan_app/config/constants/app_image.dart';
+import 'package:absensi_karyawan_app/config/theme/app_colors.dart';
+
 import '../bloc/forgot_password_cubit.dart';
 import '../bloc/forgot_password_state.dart';
 import '../bloc/otp_purpose.dart';
@@ -31,6 +33,7 @@ class ForgotPasswordPage extends StatelessWidget {
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Stack(
           children: [
@@ -42,9 +45,9 @@ class ForgotPasswordPage extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Color(0xFF37210E),
-                    Color(0xFF624731),
-                    Color(0xFF957158),
+                    AppColors.primary, // #624731
+                    Color(0xFF7A5A44), // mid brown
+                    Color(0xFF9B7A63), // soft brown
                   ],
                 ),
               ),
@@ -56,7 +59,6 @@ class ForgotPasswordPage extends StatelessWidget {
               child: BlocListener<ForgotPasswordCubit, ForgotPasswordState>(
                 listener: (context, state) {
                   if (state is ForgotPasswordSuccess) {
-                    // Snackbar sukses
                     ScaffoldMessenger.of(context)
                       ..hideCurrentSnackBar()
                       ..showSnackBar(
@@ -65,10 +67,10 @@ class ForgotPasswordPage extends StatelessWidget {
                             'Kode OTP dikirim ke ${_maskEmail(state.email)}',
                           ),
                           behavior: SnackBarBehavior.floating,
+                          backgroundColor: AppColors.success,
                         ),
                       );
 
-                    // Pindah ke OTP (forgot password)
                     context.go(
                       '/otp',
                       extra: {
@@ -85,6 +87,7 @@ class ForgotPasswordPage extends StatelessWidget {
                         SnackBar(
                           content: Text(state.message),
                           behavior: SnackBarBehavior.floating,
+                          backgroundColor: AppColors.danger,
                         ),
                       );
                   }
@@ -94,7 +97,7 @@ class ForgotPasswordPage extends StatelessWidget {
                   margin: EdgeInsets.only(
                     left: 2,
                     right: 2,
-                    top: size.height * 0.21,
+                    top: size.height * 0.28,
                     bottom: 16,
                   ),
                   padding: const EdgeInsets.fromLTRB(24, 32, 24, 32),
@@ -103,8 +106,8 @@ class ForgotPasswordPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(32),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.15),
-                        blurRadius: 6,
+                        color: Colors.black.withValues(alpha: 0.12),
+                        blurRadius: 4,
                         offset: const Offset(0, 4),
                       ),
                     ],
@@ -114,14 +117,19 @@ class ForgotPasswordPage extends StatelessWidget {
                       Text(
                         'Account Verification',
                         style: TextStyle(
-                          fontSize: 28,
+                          fontSize: 35,
                           fontWeight: FontWeight.bold,
+                          color: Color(0xFF000000),
                         ),
                       ),
-                      SizedBox(height: 16),
+                      SizedBox(height: 12),
                       Text(
                         'Provide your account email to reset your password',
                         textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFF797979),
+                        ),
                       ),
                       SizedBox(height: 48),
                       Expanded(

@@ -18,8 +18,11 @@ import '../home/bloc/home_cubit.dart';
 import '../home/pages/home_page.dart';
 import '../profile/pages/profile_page.dart';
 
-// ✅ CALENDAR
+// CALENDAR
 import '../calendar/pages/calendar_page.dart';
+
+// ✅ ATTENDANCE
+import '../attendance/pages/attendance_page.dart';
 
 // LEAVE APPROVAL (ADMIN / MANAGER)
 import '../admin/pages/leave_approval_page.dart';
@@ -151,11 +154,19 @@ class AppRouter {
         ),
 
         // ===============================
-        // ✅ CALENDAR (EMPLOYEE)
+        // CALENDAR
         // ===============================
         GoRoute(
           path: '/calendar',
           builder: (context, state) => const CalendarPage(),
+        ),
+
+        // ===============================
+        // ✅ ATTENDANCE (EMPLOYEE)
+        // ===============================
+        GoRoute(
+          path: '/attendance',
+          builder: (context, state) => const AttendancePage(),
         ),
 
         // ===============================

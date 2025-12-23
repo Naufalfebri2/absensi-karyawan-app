@@ -74,13 +74,38 @@ class _ResetPasswordFormState extends State<ResetPasswordForm> {
                     v != _passwordC.text ? 'Password tidak sama' : null,
               ),
               const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: loading ? null : _submit,
-                  child: loading
-                      ? const CircularProgressIndicator()
-                      : const Text('Reset Password'),
+              Center(
+                child: SizedBox(
+                  height: 48,
+                  width:
+                      MediaQuery.of(context).size.width * 0.7, // ✅ tidak full
+                  child: ElevatedButton(
+                    onPressed: loading ? null : _submit,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFEAF4EF),
+                      foregroundColor: const Color(0xFF0F6F61),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                    ),
+                    child: loading
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Color(0xFF0F6F61),
+                            ),
+                          )
+                        : const Text(
+                            'Reset Password',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                  ),
                 ),
               ),
             ],

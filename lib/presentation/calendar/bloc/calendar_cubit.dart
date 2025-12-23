@@ -56,7 +56,7 @@ class CalendarCubit extends Cubit<CalendarState> {
         ],
         loading: false,
         isHoliday: isHoliday,
-        holidayName: holidayName, // 🔥 TIDAK AKAN KE-RESET
+        holidayName: holidayName,
       ),
     );
   }

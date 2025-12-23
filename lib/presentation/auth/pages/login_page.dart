@@ -51,7 +51,6 @@ class LoginPage extends StatelessWidget {
                 Align(
                   alignment: Alignment.bottomCenter,
                   child: BlocListener<LoginCubit, LoginState>(
-                    // 🔴 FIX UTAMA: dengarkan SEMUA state penting
                     listenWhen: (prev, curr) =>
                         curr is LoginSuccess ||
                         curr is LoginOtpRequired ||
@@ -60,7 +59,7 @@ class LoginPage extends StatelessWidget {
                       if (!context.mounted) return;
 
                       // ===============================
-                      // ✅ LOGIN FINAL (LANGSUNG KE HOME)
+                      // LOGIN (LANGSUNG KE HOME)
                       // ===============================
                       if (state is LoginSuccess) {
                         context.read<AuthCubit>().setAuthenticated(
@@ -71,7 +70,7 @@ class LoginPage extends StatelessWidget {
                       }
 
                       // ===============================
-                      // 🔐 OTP FLOW
+                      // OTP FLOW
                       // ===============================
                       if (state is LoginOtpRequired) {
                         context.read<AuthCubit>().requireOtp(
@@ -81,7 +80,7 @@ class LoginPage extends StatelessWidget {
                       }
 
                       // ===============================
-                      // ❌ ERROR LOGIN
+                      // ERROR LOGIN
                       // ===============================
                       if (state is LoginError) {
                         ScaffoldMessenger.of(context)
@@ -108,7 +107,7 @@ class LoginPage extends StatelessWidget {
                         borderRadius: BorderRadius.circular(32),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.25),
+                            color: Colors.black.withValues(alpha: 0.14),
                             blurRadius: 4,
                             offset: const Offset(0, 4),
                           ),
@@ -121,6 +120,7 @@ class LoginPage extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 35,
                               fontWeight: FontWeight.w700,
+                              color: Color(0xFF000000),
                             ),
                           ),
                           SizedBox(height: 40),
@@ -151,8 +151,8 @@ class LoginPage extends StatelessWidget {
                         color: Colors.white,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.25),
-                            blurRadius: 4,
+                            color: Colors.black.withValues(alpha: 0.18),
+                            blurRadius: 6,
                             offset: const Offset(0, 4),
                           ),
                         ],

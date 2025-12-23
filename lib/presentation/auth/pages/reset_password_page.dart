@@ -37,7 +37,7 @@ class ResetPasswordPage extends StatelessWidget {
         child: Stack(
           children: [
             // ===============================
-            // TOP GRADIENT
+            // TOP GRADIENT (SAMA LOGIN)
             // ===============================
             Container(
               height: size.height * 0.42,
@@ -55,13 +55,12 @@ class ResetPasswordPage extends StatelessWidget {
             ),
 
             // ===============================
-            // CARD
+            // CARD (IDENTIK LOGIN)
             // ===============================
             Align(
               alignment: Alignment.bottomCenter,
               child: BlocListener<ResetPasswordCubit, ResetPasswordState>(
                 listener: (context, state) async {
-                  // ERROR
                   if (state is ResetPasswordError) {
                     ScaffoldMessenger.of(context)
                       ..hideCurrentSnackBar()
@@ -73,7 +72,6 @@ class ResetPasswordPage extends StatelessWidget {
                       );
                   }
 
-                  // ✅ SUCCESS
                   if (state is ResetPasswordSuccess) {
                     await showDialog(
                       context: context,
@@ -101,7 +99,7 @@ class ResetPasswordPage extends StatelessWidget {
                   margin: EdgeInsets.only(
                     left: 2,
                     right: 2,
-                    top: size.height * 0.21,
+                    top: size.height * 0.28, // ✅ SAMA LOGIN
                     bottom: 16,
                   ),
                   padding: const EdgeInsets.fromLTRB(24, 32, 24, 32),
@@ -110,34 +108,43 @@ class ResetPasswordPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(32),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.25),
+                        color: Colors.black.withValues(alpha: 0.14),
                         blurRadius: 4,
                         offset: const Offset(0, 4),
                       ),
                     ],
                   ),
                   child: Column(
-                    mainAxisSize: MainAxisSize.min,
                     children: [
                       const Text(
                         'Reset Password',
                         style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 35, // ✅ SAMA LOGIN
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF000000),
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 12),
                       Text(
                         'Buat password baru untuk\n${_maskEmail(email)}',
                         textAlign: TextAlign.center,
-                        style: const TextStyle(color: Colors.grey),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFF797979),
+                        ),
                       ),
                       const SizedBox(height: 40),
 
                       // ===============================
-                      // FORM
+                      // FORM (SCROLL SAFE)
                       // ===============================
-                      ResetPasswordForm(email: email),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          keyboardDismissBehavior:
+                              ScrollViewKeyboardDismissBehavior.onDrag,
+                          child: ResetPasswordForm(email: email),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -145,7 +152,7 @@ class ResetPasswordPage extends StatelessWidget {
             ),
 
             // ===============================
-            // LOGO
+            // LOGO (SAMA LOGIN)
             // ===============================
             Positioned(
               top: 90,
