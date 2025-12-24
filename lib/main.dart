@@ -35,11 +35,6 @@ import 'domain/usecases/leave/approve_leave.dart';
 import 'domain/usecases/leave/reject_leave.dart';
 
 // ===============================
-// USECASES - ATTENDANCE
-// ===============================
-import 'domain/usecases/attendance/check_in.dart';
-
-// ===============================
 // DATA - AUTH
 // ===============================
 import 'data/repositories/auth_repository_impl.dart';
@@ -63,6 +58,7 @@ import 'domain/repositories/attendance_repository.dart';
 // ===============================
 import 'core/network/dio_client.dart';
 import 'core/services/device/local_storage_service.dart';
+import 'core/services/location/location_service.dart';
 
 // ===============================
 // HOLIDAY
@@ -100,9 +96,10 @@ void main() async {
   );
 
   // ===============================
-  // HOLIDAY SERVICE 🆕
+  // SERVICES (SINGLE INSTANCE)
   // ===============================
   final holidayService = HolidayService();
+  final locationService = LocationService();
 
   // ===============================
   // AUTH CUBIT
@@ -115,6 +112,7 @@ void main() async {
       leaveRepository: leaveRepository,
       attendanceRepository: attendanceRepository,
       holidayService: holidayService,
+      locationService: locationService,
       authCubit: authCubit,
     ),
   );
@@ -125,6 +123,7 @@ class AbsensiApp extends StatelessWidget {
   final LeaveRepositoryImpl leaveRepository;
   final AttendanceRepositoryImpl attendanceRepository;
   final HolidayService holidayService;
+  final LocationService locationService;
   final AuthCubit authCubit;
 
   const AbsensiApp({
@@ -133,6 +132,7 @@ class AbsensiApp extends StatelessWidget {
     required this.leaveRepository,
     required this.attendanceRepository,
     required this.holidayService,
+    required this.locationService,
     required this.authCubit,
   });
 
@@ -150,9 +150,10 @@ class AbsensiApp extends StatelessWidget {
         ),
 
         // ===============================
-        // HOLIDAY SERVICE 🆕
+        // SERVICES
         // ===============================
         RepositoryProvider<HolidayService>.value(value: holidayService),
+        RepositoryProvider<LocationService>.value(value: locationService),
 
         // ===============================
         // AUTH USECASES
@@ -181,19 +182,23 @@ class AbsensiApp extends StatelessWidget {
         RepositoryProvider<RejectLeaveUsecase>(
           create: (_) => RejectLeaveUsecase(leaveRepository),
         ),
-
-        // ===============================
-        // ATTENDANCE USECASE ✅ INI PENTING
-        // ===============================
-        RepositoryProvider<CheckIn>(
-          create: (_) => CheckIn(attendanceRepository),
-        ),
       ],
-
       child: MultiBlocProvider(
         providers: [
+          // ===============================
+          // AUTH (GLOBAL)
+          // ===============================
           BlocProvider<AuthCubit>.value(value: authCubit..checkAuthStatus()),
-          BlocProvider<HomeCubit>(create: (_) => HomeCubit()..loadDashboard()),
+
+          // ===============================
+          // HOME (GLOBAL)
+          // ===============================
+          BlocProvider<HomeCubit>(
+            create: (_) => HomeCubit(
+              holidayService: holidayService,
+              locationService: locationService,
+            )..loadDashboard(),
+          ),
         ],
         child: MaterialApp.router(
           debugShowCheckedModeBanner: false,

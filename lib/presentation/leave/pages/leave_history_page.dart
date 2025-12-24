@@ -66,7 +66,8 @@ class _LeaveHistoryPageState extends State<LeaveHistoryPage> {
               ),
             ),
           ).then((_) {
-            // 🔥 WAJIB: refresh setelah kembali
+            // 🔥 FIX: guard mounted
+            if (!mounted) return;
             context.read<LeaveCubit>().fetchLeaves();
           });
         },

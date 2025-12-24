@@ -9,11 +9,10 @@ class AttendanceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isLate = attendance.status == AttendanceStatus.late;
-    final isOnTime = attendance.status == AttendanceStatus.onTime;
-
     final hasTime =
         attendance.checkInTime != null || attendance.checkOutTime != null;
+
+    final statusColor = _statusColor(attendance.status);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -72,11 +71,7 @@ class AttendanceCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: isLate
-                        ? AppColors.danger
-                        : isOnTime
-                        ? AppColors.success
-                        : AppColors.textPrimary,
+                    color: statusColor,
                   ),
                 ),
 
@@ -128,6 +123,9 @@ class AttendanceCard extends StatelessWidget {
     );
   }
 
+  // ===============================
+  // STATUS LABEL
+  // ===============================
   String _statusLabel(AttendanceStatus status) {
     switch (status) {
       case AttendanceStatus.onTime:
@@ -138,6 +136,30 @@ class AttendanceCard extends StatelessWidget {
         return "Leave";
       case AttendanceStatus.holiday:
         return "Holiday";
+      case AttendanceStatus.earlyLeave:
+        return "Early Leave";
+      case AttendanceStatus.overtime:
+        return "Overtime";
+    }
+  }
+
+  // ===============================
+  // STATUS COLOR
+  // ===============================
+  Color _statusColor(AttendanceStatus status) {
+    switch (status) {
+      case AttendanceStatus.onTime:
+        return AppColors.success;
+      case AttendanceStatus.late:
+        return AppColors.danger;
+      case AttendanceStatus.leave:
+        return AppColors.warning;
+      case AttendanceStatus.holiday:
+        return AppColors.textSecondary;
+      case AttendanceStatus.earlyLeave:
+        return Colors.deepOrange;
+      case AttendanceStatus.overtime:
+        return Colors.purple;
     }
   }
 }

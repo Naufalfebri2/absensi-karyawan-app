@@ -234,6 +234,7 @@ class _LeaveFormPageState extends State<LeaveFormPage> {
     final size = await file.length();
 
     if (size > maxFileSizeInBytes) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Ukuran file maksimal 5 MB')),
       );

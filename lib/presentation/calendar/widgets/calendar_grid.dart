@@ -134,7 +134,10 @@ class CalendarGrid extends StatelessWidget {
     ];
 
     final currentYear = DateTime.now().year;
-    final years = List.generate(11, (i) => currentYear - 5 + i);
+    final years = List<int>.generate(
+      currentYear - 1990 + 1,
+      (index) => 1990 + index,
+    );
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,

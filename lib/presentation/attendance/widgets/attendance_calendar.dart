@@ -193,7 +193,7 @@ class AttendanceCalendar extends StatelessWidget {
                         color: isSelected
                             ? Theme.of(context).colorScheme.primary
                             : isHoliday
-                            ? Colors.red.withOpacity(0.15)
+                            ? Colors.red.withValues(alpha: 0.15)
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(8),
                       ),

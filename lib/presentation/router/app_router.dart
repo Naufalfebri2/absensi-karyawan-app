@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -14,11 +15,14 @@ import '../../domain/usecases/auth/otp_verify.dart';
 import '../../domain/usecases/auth/reset_password.dart';
 
 import '../home/bloc/home_cubit.dart';
+import '../home/bloc/home_state.dart';
 import '../home/pages/home_page.dart';
 
 import '../calendar/pages/calendar_page.dart';
 
 import '../attendance/pages/attendance_page.dart';
+import '../attendance/pages/checkin_page.dart';
+import '../attendance/pages/checkout_page.dart';
 import '../attendance/bloc/attendance_cubit.dart';
 
 import '../profile/pages/profile_page.dart';
@@ -34,11 +38,30 @@ import '../../core/services/holiday/holiday_service.dart';
 import 'go_router_refresh_stream.dart';
 
 class AppRouter {
+  // ===============================
+  // HELPER: CEK HARI LIBUR NASIONAL
+  // ===============================
+  static bool _isTodayHoliday(BuildContext context) {
+    try {
+      final homeCubit = context.read<HomeCubit?>();
+      final state = homeCubit?.state;
+      if (state is HomeLoaded) {
+        return state.isHoliday;
+      }
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
+
   static GoRouter router(AuthCubit authCubit) {
     return GoRouter(
       initialLocation: '/login',
       refreshListenable: GoRouterRefreshStream(authCubit.stream),
 
+      // ===============================
+      // AUTH REDIRECT
+      // ===============================
       redirect: (context, state) {
         final authState = authCubit.state;
         final location = state.matchedLocation;
@@ -68,6 +91,9 @@ class AppRouter {
       },
 
       routes: [
+        // ===============================
+        // AUTH
+        // ===============================
         GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
 
         GoRoute(
@@ -102,25 +128,25 @@ class AppRouter {
           },
         ),
 
-        GoRoute(
-          path: '/home',
-          builder: (context, state) {
-            return BlocProvider(
-              create: (_) => HomeCubit()..loadDashboard(),
-              child: const HomePage(),
-            );
-          },
-        ),
+        // ===============================
+        // HOME
+        // ===============================
+        GoRoute(path: '/home', builder: (context, state) => const HomePage()),
 
+        // ===============================
+        // CALENDAR
+        // ===============================
         GoRoute(path: '/calendar', builder: (_, __) => const CalendarPage()),
 
+        // ===============================
+        // ATTENDANCE LIST
+        // ===============================
         GoRoute(
           path: '/attendance',
           builder: (context, state) {
             return BlocProvider(
               create: (_) => AttendanceCubit(
                 repository: context.read(),
-                checkInUseCase: context.read(),
                 holidayService: context.read<HolidayService>(),
               )..init(),
               child: const AttendancePage(),
@@ -128,6 +154,35 @@ class AppRouter {
           },
         ),
 
+        // ===============================
+        // CHECK IN (BLOCKED ON HOLIDAY)
+        // ===============================
+        GoRoute(
+          path: '/attendance/checkin',
+          builder: (context, state) {
+            if (_isTodayHoliday(context)) {
+              return const HolidayBlockedPage();
+            }
+            return const CheckInPage();
+          },
+        ),
+
+        // ===============================
+        // CHECK OUT (BLOCKED ON HOLIDAY)
+        // ===============================
+        GoRoute(
+          path: '/attendance/checkout',
+          builder: (context, state) {
+            if (_isTodayHoliday(context)) {
+              return const HolidayBlockedPage();
+            }
+            return const CheckOutPage();
+          },
+        ),
+
+        // ===============================
+        // LEAVE
+        // ===============================
         GoRoute(
           path: '/leave',
           builder: (context, state) {
@@ -155,8 +210,46 @@ class AppRouter {
           },
         ),
 
+        // ===============================
+        // PROFILE
+        // ===============================
         GoRoute(path: '/profile', builder: (_, __) => const ProfilePage()),
       ],
+    );
+  }
+}
+
+// ===============================
+// BLOCKED PAGE (HARI LIBUR)
+// ===============================
+class HolidayBlockedPage extends StatelessWidget {
+  const HolidayBlockedPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Informasi')),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              Icon(Icons.event_busy, size: 64, color: Colors.red),
+              SizedBox(height: 16),
+              Text(
+                'Hari Libur Nasional',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Check In dan Check Out tidak dapat dilakukan pada tanggal merah.',
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

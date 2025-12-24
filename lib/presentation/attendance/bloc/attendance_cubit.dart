@@ -3,19 +3,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/services/holiday/holiday_service.dart';
 import '../../../domain/entities/attendance_entity.dart';
 import '../../../domain/repositories/attendance_repository.dart';
-import '../../../domain/usecases/attendance/check_in.dart';
 import 'attendance_state.dart';
 
 class AttendanceCubit extends Cubit<AttendanceState> {
   final AttendanceRepository repository;
-  final CheckIn checkInUseCase;
   final HolidayService holidayService;
 
-  AttendanceCubit({
-    required this.repository,
-    required this.checkInUseCase,
-    required this.holidayService,
-  }) : super(AttendanceState.initial());
+  AttendanceCubit({required this.repository, required this.holidayService})
+    : super(AttendanceState.initial());
 
   // ===================================================
   // INIT (dipanggil dari router)
@@ -25,7 +20,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
 
     await loadAttendance(year: now.year, month: now.month);
     await loadTodayAttendance();
-    await loadHolidays(now.year); // 🔥 WAJIB
+    await loadHolidays(now.year);
   }
 
   // ===================================================
@@ -78,38 +73,9 @@ class AttendanceCubit extends Cubit<AttendanceState> {
   }
 
   // ===================================================
-  // CHECK IN
-  // ===================================================
-  Future<void> checkIn({
-    required double latitude,
-    required double longitude,
-    required String photoPath,
-  }) async {
-    try {
-      emit(state.copyWith(actionLoading: true));
-
-      final attendance = await checkInUseCase(
-        latitude: latitude,
-        longitude: longitude,
-        photoPath: photoPath,
-      );
-
-      emit(state.copyWith(actionLoading: false, todayAttendance: attendance));
-
-      await loadAttendance(
-        year: state.selectedYear,
-        month: state.selectedMonth,
-      );
-    } catch (_) {
-      emit(state.copyWith(actionLoading: false));
-    }
-  }
-
-  // ===================================================
   // CHANGE MONTH
   // ===================================================
   Future<void> changeMonth({required int year, required int month}) async {
-    // 🔥 1. UPDATE STATE DULU (BIAR UI LANGSUNG REBUILD)
     emit(
       state.copyWith(
         selectedYear: year,
@@ -119,7 +85,6 @@ class AttendanceCubit extends Cubit<AttendanceState> {
       ),
     );
 
-    // 🔥 2. LOAD DATA SETELAH UI UPDATE
     await loadAttendance(year: year, month: month);
     await loadHolidays(year);
   }

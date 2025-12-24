@@ -20,6 +20,7 @@ import 'package:absensi_karyawan_app/data/datasources/remote/attendance_remote.d
 import 'package:absensi_karyawan_app/core/network/dio_client.dart';
 import 'package:absensi_karyawan_app/core/services/device/local_storage_service.dart';
 import 'package:absensi_karyawan_app/core/services/holiday/holiday_service.dart';
+import 'package:absensi_karyawan_app/core/services/location/location_service.dart';
 
 // ===============================
 // CUBIT
@@ -53,9 +54,10 @@ void main() {
     );
 
     // ===============================
-    // HOLIDAY SERVICE ✅ WAJIB
+    // SERVICES
     // ===============================
     final holidayService = HolidayService();
+    final locationService = LocationService(); // ✅ FIX
 
     // ===============================
     // AUTH CUBIT
@@ -70,7 +72,8 @@ void main() {
         authRepository: authRepository,
         leaveRepository: leaveRepository,
         attendanceRepository: attendanceRepository,
-        holidayService: holidayService, // ✅ FIX
+        holidayService: holidayService,
+        locationService: locationService,
         authCubit: authCubit,
       ),
     );
