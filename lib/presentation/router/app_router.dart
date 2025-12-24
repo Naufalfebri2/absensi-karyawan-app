@@ -13,29 +13,23 @@ import '../auth/pages/reset_password_page.dart';
 import '../../domain/usecases/auth/otp_verify.dart';
 import '../../domain/usecases/auth/reset_password.dart';
 
-// HOME & PROFILE
 import '../home/bloc/home_cubit.dart';
 import '../home/pages/home_page.dart';
-import '../profile/pages/profile_page.dart';
 
-// CALENDAR
 import '../calendar/pages/calendar_page.dart';
 
-// ✅ ATTENDANCE
 import '../attendance/pages/attendance_page.dart';
+import '../attendance/bloc/attendance_cubit.dart';
 
-// LEAVE APPROVAL (ADMIN / MANAGER)
-import '../admin/pages/leave_approval_page.dart';
-import '../admin/leave/bloc/leave_approval_cubit.dart';
-import '../../domain/usecases/leave/get_pending_leaves.dart';
-import '../../domain/usecases/leave/approve_leave.dart';
-import '../../domain/usecases/leave/reject_leave.dart';
+import '../profile/pages/profile_page.dart';
 
-// LEAVE HISTORY (EMPLOYEE)
 import '../leave/pages/leave_history_page.dart';
 import '../leave/bloc/leave_cubit.dart';
-import '../../domain/usecases/leave/get_leaves.dart';
-import '../../domain/usecases/leave/create_leave.dart';
+
+import '../admin/pages/leave_approval_page.dart';
+import '../admin/leave/bloc/leave_approval_cubit.dart';
+
+import '../../core/services/holiday/holiday_service.dart';
 
 import 'go_router_refresh_stream.dart';
 
@@ -43,11 +37,8 @@ class AppRouter {
   static GoRouter router(AuthCubit authCubit) {
     return GoRouter(
       initialLocation: '/login',
-
-      // ===============================
-      // AUTH & ROLE GUARD
-      // ===============================
       refreshListenable: GoRouterRefreshStream(authCubit.stream),
+
       redirect: (context, state) {
         final authState = authCubit.state;
         final location = state.matchedLocation;
@@ -55,38 +46,19 @@ class AppRouter {
         final isLogin = location == '/login';
         final isOtp = location == '/otp';
         final isResetPassword = location == '/reset-password';
-        final isLeaveApproval = location == '/leave-approval';
 
-        // ===============================
-        // SUDAH LOGIN
-        // ===============================
         if (authState is AuthAuthenticated) {
           if (isLogin || isOtp || isResetPassword) {
             return '/home';
           }
-
-          // ROLE GUARD (Manager / HR)
-          if (isLeaveApproval) {
-            final role = authState.user['role'];
-            if (role != 'Manager' && role != 'HR') {
-              return '/home';
-            }
-          }
-
           return null;
         }
 
-        // ===============================
-        // OTP REQUIRED
-        // ===============================
         if (authState is AuthOtpRequired) {
           if (isOtp) return null;
           return '/otp';
         }
 
-        // ===============================
-        // BELUM LOGIN
-        // ===============================
         if (authState is AuthUnauthenticated || authState is AuthInitial) {
           if (isLogin || isResetPassword) return null;
           return '/login';
@@ -96,14 +68,8 @@ class AppRouter {
       },
 
       routes: [
-        // ===============================
-        // LOGIN
-        // ===============================
-        GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
+        GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
 
-        // ===============================
-        // OTP
-        // ===============================
         GoRoute(
           path: '/otp',
           builder: (context, state) {
@@ -114,15 +80,12 @@ class AppRouter {
             }
 
             return BlocProvider(
-              create: (context) => OtpCubit(context.read<OtpVerify>()),
+              create: (_) => OtpCubit(context.read<OtpVerify>()),
               child: OtpPage(email: authState.email, purpose: OtpPurpose.login),
             );
           },
         ),
 
-        // ===============================
-        // RESET PASSWORD
-        // ===============================
         GoRoute(
           path: '/reset-password',
           builder: (context, state) {
@@ -133,16 +96,12 @@ class AppRouter {
             }
 
             return BlocProvider(
-              create: (context) =>
-                  ResetPasswordCubit(context.read<ResetPassword>()),
+              create: (_) => ResetPasswordCubit(context.read<ResetPassword>()),
               child: ResetPasswordPage(email: extra['email']),
             );
           },
         ),
 
-        // ===============================
-        // HOME (EMPLOYEE)
-        // ===============================
         GoRoute(
           path: '/home',
           builder: (context, state) {
@@ -153,62 +112,50 @@ class AppRouter {
           },
         ),
 
-        // ===============================
-        // CALENDAR
-        // ===============================
-        GoRoute(
-          path: '/calendar',
-          builder: (context, state) => const CalendarPage(),
-        ),
+        GoRoute(path: '/calendar', builder: (_, __) => const CalendarPage()),
 
-        // ===============================
-        // ✅ ATTENDANCE (EMPLOYEE)
-        // ===============================
         GoRoute(
           path: '/attendance',
-          builder: (context, state) => const AttendancePage(),
+          builder: (context, state) {
+            return BlocProvider(
+              create: (_) => AttendanceCubit(
+                repository: context.read(),
+                checkInUseCase: context.read(),
+                holidayService: context.read<HolidayService>(),
+              )..init(),
+              child: const AttendancePage(),
+            );
+          },
         ),
 
-        // ===============================
-        // PROFILE
-        // ===============================
-        GoRoute(
-          path: '/profile',
-          builder: (context, state) => const ProfilePage(),
-        ),
-
-        // ===============================
-        // LEAVE HISTORY (EMPLOYEE)
-        // ===============================
         GoRoute(
           path: '/leave',
           builder: (context, state) {
             return BlocProvider(
-              create: (context) => LeaveCubit(
-                getLeaves: context.read<GetLeaves>(),
-                createLeave: context.read<CreateLeave>(),
+              create: (_) => LeaveCubit(
+                getLeaves: context.read(),
+                createLeave: context.read(),
               )..fetchLeaves(),
               child: const LeaveHistoryPage(),
             );
           },
         ),
 
-        // ===============================
-        // LEAVE APPROVAL (MANAGER / HR)
-        // ===============================
         GoRoute(
           path: '/leave-approval',
           builder: (context, state) {
             return BlocProvider(
-              create: (context) => LeaveApprovalCubit(
-                getPendingLeaves: context.read<GetPendingLeaves>(),
-                approveLeave: context.read<ApproveLeaveUsecase>(),
-                rejectLeave: context.read<RejectLeaveUsecase>(),
+              create: (_) => LeaveApprovalCubit(
+                getPendingLeaves: context.read(),
+                approveLeave: context.read(),
+                rejectLeave: context.read(),
               )..load(),
               child: const LeaveApprovalPage(),
             );
           },
         ),
+
+        GoRoute(path: '/profile', builder: (_, __) => const ProfilePage()),
       ],
     );
   }

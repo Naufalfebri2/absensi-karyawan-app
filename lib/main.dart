@@ -14,7 +14,7 @@ import 'presentation/router/app_router.dart';
 import 'presentation/auth/bloc/auth_cubit.dart';
 
 // ===============================
-// HOME CUBIT (GLOBAL)
+// HOME CUBIT
 // ===============================
 import 'presentation/home/bloc/home_cubit.dart';
 
@@ -26,31 +26,48 @@ import 'domain/usecases/auth/otp_verify.dart';
 import 'domain/usecases/auth/reset_password.dart';
 
 // ===============================
-// USECASES - LEAVE (EMPLOYEE)
+// USECASES - LEAVE
 // ===============================
 import 'domain/usecases/leave/get_leaves.dart';
 import 'domain/usecases/leave/create_leave.dart';
-
-// ===============================
-// USECASES - LEAVE (MANAGER)
-// ===============================
 import 'domain/usecases/leave/get_pending_leaves.dart';
 import 'domain/usecases/leave/approve_leave.dart';
 import 'domain/usecases/leave/reject_leave.dart';
 
 // ===============================
-// DATA
+// USECASES - ATTENDANCE
+// ===============================
+import 'domain/usecases/attendance/check_in.dart';
+
+// ===============================
+// DATA - AUTH
 // ===============================
 import 'data/repositories/auth_repository_impl.dart';
-import 'data/repositories/leave_repository_impl.dart';
 import 'data/datasources/remote/auth_remote.dart';
+
+// ===============================
+// DATA - LEAVE
+// ===============================
+import 'data/repositories/leave_repository_impl.dart';
 import 'data/datasources/remote/leave_remote.dart';
+
+// ===============================
+// DATA - ATTENDANCE
+// ===============================
+import 'data/repositories/attendance_repository_impl.dart';
+import 'data/datasources/remote/attendance_remote.dart';
+import 'domain/repositories/attendance_repository.dart';
 
 // ===============================
 // CORE
 // ===============================
 import 'core/network/dio_client.dart';
 import 'core/services/device/local_storage_service.dart';
+
+// ===============================
+// HOLIDAY
+// ===============================
+import 'core/services/holiday/holiday_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -75,6 +92,19 @@ void main() async {
   final leaveRepository = LeaveRepositoryImpl(leaveRemote);
 
   // ===============================
+  // ATTENDANCE
+  // ===============================
+  final attendanceRemote = AttendanceRemote(dio);
+  final attendanceRepository = AttendanceRepositoryImpl(
+    remoteDataSource: attendanceRemote,
+  );
+
+  // ===============================
+  // HOLIDAY SERVICE 🆕
+  // ===============================
+  final holidayService = HolidayService();
+
+  // ===============================
   // AUTH CUBIT
   // ===============================
   final authCubit = AuthCubit(storage);
@@ -83,6 +113,8 @@ void main() async {
     AbsensiApp(
       authRepository: authRepository,
       leaveRepository: leaveRepository,
+      attendanceRepository: attendanceRepository,
+      holidayService: holidayService,
       authCubit: authCubit,
     ),
   );
@@ -91,12 +123,16 @@ void main() async {
 class AbsensiApp extends StatelessWidget {
   final AuthRepositoryImpl authRepository;
   final LeaveRepositoryImpl leaveRepository;
+  final AttendanceRepositoryImpl attendanceRepository;
+  final HolidayService holidayService;
   final AuthCubit authCubit;
 
   const AbsensiApp({
     super.key,
     required this.authRepository,
     required this.leaveRepository,
+    required this.attendanceRepository,
+    required this.holidayService,
     required this.authCubit,
   });
 
@@ -109,6 +145,14 @@ class AbsensiApp extends StatelessWidget {
         // ===============================
         RepositoryProvider<AuthRepositoryImpl>.value(value: authRepository),
         RepositoryProvider<LeaveRepositoryImpl>.value(value: leaveRepository),
+        RepositoryProvider<AttendanceRepository>.value(
+          value: attendanceRepository,
+        ),
+
+        // ===============================
+        // HOLIDAY SERVICE 🆕
+        // ===============================
+        RepositoryProvider<HolidayService>.value(value: holidayService),
 
         // ===============================
         // AUTH USECASES
@@ -120,7 +164,7 @@ class AbsensiApp extends StatelessWidget {
         ),
 
         // ===============================
-        // LEAVE USECASES (EMPLOYEE)
+        // LEAVE USECASES
         // ===============================
         RepositoryProvider<GetLeaves>(
           create: (_) => GetLeaves(leaveRepository),
@@ -128,10 +172,6 @@ class AbsensiApp extends StatelessWidget {
         RepositoryProvider<CreateLeave>(
           create: (_) => CreateLeave(leaveRepository),
         ),
-
-        // ===============================
-        // LEAVE USECASES (MANAGER)
-        // ===============================
         RepositoryProvider<GetPendingLeaves>(
           create: (_) => GetPendingLeaves(leaveRepository),
         ),
@@ -141,17 +181,18 @@ class AbsensiApp extends StatelessWidget {
         RepositoryProvider<RejectLeaveUsecase>(
           create: (_) => RejectLeaveUsecase(leaveRepository),
         ),
+
+        // ===============================
+        // ATTENDANCE USECASE ✅ INI PENTING
+        // ===============================
+        RepositoryProvider<CheckIn>(
+          create: (_) => CheckIn(attendanceRepository),
+        ),
       ],
 
-      // ===============================
-      // GLOBAL BLOC PROVIDERS (FIX FINAL)
-      // ===============================
       child: MultiBlocProvider(
         providers: [
-          // AUTH
           BlocProvider<AuthCubit>.value(value: authCubit..checkAuthStatus()),
-
-          // HOME (GLOBAL – SESUAI home_cubit.dart)
           BlocProvider<HomeCubit>(create: (_) => HomeCubit()..loadDashboard()),
         ],
         child: MaterialApp.router(

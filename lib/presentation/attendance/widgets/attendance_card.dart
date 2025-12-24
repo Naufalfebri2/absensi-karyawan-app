@@ -16,21 +16,20 @@ class AttendanceCard extends StatelessWidget {
         attendance.checkInTime != null || attendance.checkOutTime != null;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 10), // lebih rapat (Figma)
+      margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(9),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // ===============================
-          // DATE BOX (15 / 12)
+          // DATE BOX
           // ===============================
           Container(
             width: 52,
-            padding: const EdgeInsets.symmetric(vertical: 6), // 🔥 KUNCI FIX
+            padding: const EdgeInsets.symmetric(vertical: 6),
             decoration: BoxDecoration(
               color: AppColors.background,
               borderRadius: BorderRadius.circular(9),
@@ -38,7 +37,7 @@ class AttendanceCard extends StatelessWidget {
             ),
             alignment: Alignment.center,
             child: Column(
-              mainAxisSize: MainAxisSize.min, // 🔥 PENTING
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   attendance.date.day.toString(),
@@ -47,13 +46,7 @@ class AttendanceCard extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                const Text(
-                  '/',
-                  style: TextStyle(
-                    fontSize: 12,
-                    height: 0.9, // 🔥 RAPAT
-                  ),
-                ),
+                const Text('/', style: TextStyle(fontSize: 12, height: 0.9)),
                 Text(
                   attendance.date.month.toString().padLeft(2, '0'),
                   style: const TextStyle(
@@ -73,9 +66,7 @@ class AttendanceCard extends StatelessWidget {
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
               children: [
-                // STATUS
                 Text(
                   _statusLabel(attendance.status),
                   style: TextStyle(
@@ -89,7 +80,6 @@ class AttendanceCard extends StatelessWidget {
                   ),
                 ),
 
-                // TIME ROW (HANYA JIKA ADA JAM)
                 if (hasTime) ...[
                   const SizedBox(height: 4),
                   Row(
@@ -138,9 +128,6 @@ class AttendanceCard extends StatelessWidget {
     );
   }
 
-  // ===============================
-  // HELPERS
-  // ===============================
   String _statusLabel(AttendanceStatus status) {
     switch (status) {
       case AttendanceStatus.onTime:
@@ -151,8 +138,6 @@ class AttendanceCard extends StatelessWidget {
         return "Leave";
       case AttendanceStatus.holiday:
         return "Holiday";
-      case AttendanceStatus.absent:
-        return "Absent";
     }
   }
 }

@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
-import '../../../config/theme/app_colors.dart';
 import '../bloc/attendance_cubit.dart';
 import '../bloc/attendance_state.dart';
 
 class AttendanceCalendar extends StatelessWidget {
-  final Map<DateTime, String> holidays;
-
-  const AttendanceCalendar({super.key, required this.holidays});
+  const AttendanceCalendar({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -16,20 +14,29 @@ class AttendanceCalendar extends StatelessWidget {
       builder: (context, state) {
         final year = state.selectedYear;
         final month = state.selectedMonth;
+        final holidays = state.holidays;
 
         final firstDayOfMonth = DateTime(year, month, 1);
-        final daysInMonth = DateTime(year, month + 1, 0).day;
-        final startWeekday = firstDayOfMonth.weekday % 7;
+        final daysInMonth = DateUtils.getDaysInMonth(year, month);
+        final firstWeekday = firstDayOfMonth.weekday; // Mon = 1
+
+        final leadingEmptyDays = (firstWeekday - 1) % 7;
+        final totalCells = leadingEmptyDays + daysInMonth;
+
+        // ===== RANGE TAHUN =====
+        final startYear = 1990;
+        final endYear = DateTime.now().year + 10;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ===============================
-            // MONTH & YEAR HEADER (GOOGLE CALENDAR STYLE)
-            // ===============================
+            // ===================================================
+            // HEADER: <  MONTH ▼  YEAR ▼  >
+            // ===================================================
             Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                // PREVIOUS MONTH
                 IconButton(
                   icon: const Icon(Icons.chevron_left),
                   onPressed: () {
@@ -40,21 +47,61 @@ class AttendanceCalendar extends StatelessWidget {
                     );
                   },
                 ),
-                Text(
-                  _monthLabel(month),
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+
+                // MONTH & YEAR DROPDOWN
+                Row(
+                  children: [
+                    // ---------- MONTH ----------
+                    DropdownButton<int>(
+                      value: month,
+                      underline: const SizedBox(),
+                      items: List.generate(12, (i) {
+                        final m = i + 1;
+                        return DropdownMenuItem(
+                          value: m,
+                          child: Text(
+                            DateFormat('MMMM').format(DateTime(2025, m)),
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                        );
+                      }),
+                      onChanged: (value) {
+                        if (value == null) return;
+                        context.read<AttendanceCubit>().changeMonth(
+                          year: year,
+                          month: value,
+                        );
+                      },
+                    ),
+
+                    const SizedBox(width: 8),
+
+                    // ---------- YEAR ----------
+                    DropdownButton<int>(
+                      value: year,
+                      underline: const SizedBox(),
+                      items: List.generate(endYear - startYear + 1, (i) {
+                        final y = startYear + i;
+                        return DropdownMenuItem(
+                          value: y,
+                          child: Text(
+                            y.toString(),
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                        );
+                      }),
+                      onChanged: (value) {
+                        if (value == null) return;
+                        context.read<AttendanceCubit>().changeMonth(
+                          year: value,
+                          month: month,
+                        );
+                      },
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 6),
-                Text(
-                  year.toString(),
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+
+                // NEXT MONTH
                 IconButton(
                   icon: const Icon(Icons.chevron_right),
                   onPressed: () {
@@ -70,115 +117,115 @@ class AttendanceCalendar extends StatelessWidget {
 
             const SizedBox(height: 12),
 
-            // ===============================
+            // ===================================================
             // WEEKDAY HEADER
-            // ===============================
+            // ===================================================
             Row(
               children: const [
-                _Weekday('Su', isSunday: true),
-                _Weekday('Mo'),
-                _Weekday('Tu'),
-                _Weekday('We'),
-                _Weekday('Th'),
-                _Weekday('Fr'),
-                _Weekday('Sa'),
+                _Weekday('Mon'),
+                _Weekday('Tue'),
+                _Weekday('Wed'),
+                _Weekday('Thu'),
+                _Weekday('Fri'),
+                _Weekday('Sat'),
+                _Weekday('Sun'),
               ],
             ),
 
             const SizedBox(height: 8),
 
-            // ===============================
-            // CALENDAR GRID
-            // ===============================
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: startWeekday + daysInMonth,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 7,
-                crossAxisSpacing: 6,
-                mainAxisSpacing: 6,
-              ),
-              itemBuilder: (context, index) {
-                if (index < startWeekday) {
-                  return const SizedBox.shrink();
+            // ===================================================
+            // CALENDAR GRID + SWIPE
+            // ===================================================
+            GestureDetector(
+              onHorizontalDragEnd: (details) {
+                if (details.primaryVelocity == null) return;
+
+                if (details.primaryVelocity! < 0) {
+                  // swipe left → next month
+                  final next = DateTime(year, month + 1);
+                  context.read<AttendanceCubit>().changeMonth(
+                    year: next.year,
+                    month: next.month,
+                  );
+                } else {
+                  // swipe right → prev month
+                  final prev = DateTime(year, month - 1);
+                  context.read<AttendanceCubit>().changeMonth(
+                    year: prev.year,
+                    month: prev.month,
+                  );
                 }
-
-                final day = index - startWeekday + 1;
-                final date = DateTime(year, month, day);
-                final normalized = DateTime(date.year, date.month, date.day);
-
-                final isSunday = date.weekday == DateTime.sunday;
-                final isHoliday = holidays.containsKey(normalized);
-                final isSelected =
-                    state.selectedDate != null &&
-                    _isSameDate(state.selectedDate!, date);
-
-                Color textColor = AppColors.textPrimary;
-                Color? bgColor;
-
-                if (isSelected) {
-                  bgColor = AppColors.primary;
-                  textColor = Colors.white;
-                } else if (isSunday || isHoliday) {
-                  textColor = Colors.red;
-                }
-
-                return InkWell(
-                  borderRadius: BorderRadius.circular(8),
-                  onTap: () {
-                    context.read<AttendanceCubit>().selectDate(
-                      date: date,
-                      holidayName: holidays[normalized],
-                    );
-                  },
-                  child: Container(
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: bgColor,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '$day',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: isSelected
-                            ? FontWeight.w600
-                            : FontWeight.normal,
-                        color: textColor,
-                      ),
-                    ),
-                  ),
-                );
               },
-            ),
-
-            // ===============================
-            // HOLIDAY INFO
-            // ===============================
-            if (state.selectedHolidayName != null) ...[
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.red.shade50,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.red.shade200),
+              child: GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 7,
                 ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.event, color: Colors.red),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Libur Nasional – ${state.selectedHolidayName}',
-                        style: const TextStyle(
-                          color: Colors.red,
-                          fontWeight: FontWeight.w600,
+                itemCount: totalCells,
+                itemBuilder: (context, index) {
+                  if (index < leadingEmptyDays) {
+                    return const SizedBox.shrink();
+                  }
+
+                  final day = index - leadingEmptyDays + 1;
+                  final date = DateTime(year, month, day);
+                  final normalized = DateTime(date.year, date.month, date.day);
+
+                  final isSelected =
+                      state.selectedDate != null &&
+                      DateUtils.isSameDay(state.selectedDate, date);
+
+                  final holidayName = holidays[normalized];
+                  final isHoliday = holidayName != null;
+
+                  return GestureDetector(
+                    onTap: () {
+                      context.read<AttendanceCubit>().selectDate(
+                        date,
+                        holidayName: holidayName,
+                      );
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? Theme.of(context).colorScheme.primary
+                            : isHoliday
+                            ? Colors.red.withOpacity(0.15)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Center(
+                        child: Text(
+                          '$day',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: isSelected
+                                ? Colors.white
+                                : isHoliday
+                                ? Colors.red
+                                : Colors.black,
+                          ),
                         ),
                       ),
                     ),
-                  ],
+                  );
+                },
+              ),
+            ),
+
+            // ===================================================
+            // HOLIDAY TEXT
+            // ===================================================
+            if (state.selectedHolidayName != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Libur Nasional: ${state.selectedHolidayName}',
+                style: const TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
@@ -187,34 +234,11 @@ class AttendanceCalendar extends StatelessWidget {
       },
     );
   }
-
-  bool _isSameDate(DateTime a, DateTime b) =>
-      a.year == b.year && a.month == b.month && a.day == b.day;
-
-  String _monthLabel(int m) => const [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ][m - 1];
 }
 
-/// ===============================
-/// WEEKDAY LABEL
-/// ===============================
 class _Weekday extends StatelessWidget {
   final String label;
-  final bool isSunday;
-
-  const _Weekday(this.label, {this.isSunday = false});
+  const _Weekday(this.label);
 
   @override
   Widget build(BuildContext context) {
@@ -222,11 +246,7 @@ class _Weekday extends StatelessWidget {
       child: Center(
         child: Text(
           label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: isSunday ? Colors.red : AppColors.textSecondary,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
         ),
       ),
     );

@@ -1,37 +1,57 @@
 import 'package:dio/dio.dart';
 
 /// =======================================================
-/// HOLIDAY SERVICE (INDONESIA NATIONAL HOLIDAYS)
+/// HOLIDAY SERVICE
+/// INDONESIAN NATIONAL HOLIDAYS
+/// =======================================================
+/// Source API:
+/// https://api-harilibur.vercel.app/api
+///
+/// Return format:
+/// {
+///   DateTime(2025, 1, 1)  : "Tahun Baru Masehi",
+///   DateTime(2025, 3, 31) : "Hari Raya Idul Fitri 1446 H",
+///   DateTime(2025, 12,25): "Hari Raya Natal",
+/// }
 /// =======================================================
 class HolidayService {
-  final Dio dio;
+  late final Dio _dio;
 
-  HolidayService(this.dio);
+  HolidayService() {
+    _dio = Dio(
+      BaseOptions(
+        baseUrl: 'https://api-harilibur.vercel.app',
+        connectTimeout: const Duration(seconds: 15),
+        receiveTimeout: const Duration(seconds: 15),
+        headers: {'Accept': 'application/json'},
+      ),
+    );
+  }
 
   /// ===================================================
-  /// GET ALL INDONESIAN NATIONAL HOLIDAYS (WITH NAME)
+  /// GET NATIONAL HOLIDAYS BY YEAR
   /// ===================================================
-  /// Return:
-  /// {
-  ///   DateTime(2025, 1, 1)  : "Tahun Baru Masehi",
-  ///   DateTime(2025, 3, 31) : "Hari Raya Idul Fitri 1446 H",
-  ///   DateTime(2025, 12,25) : "Hari Raya Natal",
-  /// }
   Future<Map<DateTime, String>> getNationalHolidays(int year) async {
-    final response = await dio.get('https://api-harilibur.vercel.app/api');
+    try {
+      final response = await _dio.get('/api');
 
-    final Map<DateTime, String> holidays = {};
+      if (response.data is! List) return {};
 
-    for (final item in response.data) {
-      // hanya libur nasional resmi
-      if (item['is_national_holiday'] == true) {
+      final Map<DateTime, String> holidays = {};
+
+      for (final item in response.data) {
+        if (item is! Map<String, dynamic>) continue;
+        if (item['is_national_holiday'] != true) continue;
+
         final rawDate = item['holiday_date'];
-        if (rawDate == null) continue;
+        final parsedDate = DateTime.tryParse(rawDate ?? '');
+        if (parsedDate == null || parsedDate.year != year) continue;
 
-        final date = DateTime.parse(rawDate);
-        if (date.year != year) continue;
-
-        final normalizedDate = DateTime(date.year, date.month, date.day);
+        final normalizedDate = DateTime(
+          parsedDate.year,
+          parsedDate.month,
+          parsedDate.day,
+        );
 
         final name =
             item['holiday_name'] ??
@@ -39,10 +59,12 @@ class HolidayService {
             item['description'] ??
             'Libur Nasional';
 
-        holidays[normalizedDate] = name;
+        holidays[normalizedDate] = name.toString();
       }
-    }
 
-    return holidays;
+      return holidays;
+    } catch (_) {
+      return {};
+    }
   }
 }

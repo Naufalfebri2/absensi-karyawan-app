@@ -1,16 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:dio/dio.dart';
 
 import '../../../config/theme/app_colors.dart';
-
-import '../../../data/datasources/local/attendance_local.dart';
-import '../../../data/repositories/attendance_repository_impl.dart';
-import '../../../domain/repositories/attendance_repository.dart';
-
-import '../../../core/services/holiday/holiday_service.dart';
-
 import '../bloc/attendance_cubit.dart';
 import '../bloc/attendance_state.dart';
 import '../widgets/attendance_card.dart';
@@ -21,68 +13,39 @@ class AttendancePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RepositoryProvider<AttendanceRepository>(
-      create: (_) => AttendanceRepositoryImpl(
-        localDataSource: AttendanceLocalDataSource(),
-      ),
-      child: BlocProvider(
-        create: (context) =>
-            AttendanceCubit(repository: context.read<AttendanceRepository>()),
-        child: const _AttendanceView(),
-      ),
-    );
+    // ❗ Cubit SUDAH disediakan oleh app_router.dart
+    return const _AttendanceView();
   }
 }
 
-class _AttendanceView extends StatefulWidget {
+class _AttendanceView extends StatelessWidget {
   const _AttendanceView();
 
-  @override
-  State<_AttendanceView> createState() => _AttendanceViewState();
-}
-
-class _AttendanceViewState extends State<_AttendanceView> {
-  final HolidayService _holidayService = HolidayService(Dio());
-  Map<DateTime, String> _holidays = {};
-
   // ===============================
-  // LOAD HOLIDAY BY YEAR
-  // ===============================
-  Future<void> _loadHolidays(int year) async {
-    final data = await _holidayService.getNationalHolidays(year);
-    if (!mounted) return;
-    setState(() => _holidays = data);
-  }
-
-  // ===============================
-  // OPEN GOOGLE CALENDAR
+  // OPEN CALENDAR
   // ===============================
   void _openCalendar(BuildContext context) {
     final cubit = context.read<AttendanceCubit>();
-
-    _loadHolidays(cubit.state.selectedYear);
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (sheetContext) {
+      builder: (_) {
         return BlocProvider.value(
           value: cubit,
-          child: BlocListener<AttendanceCubit, AttendanceState>(
-            listenWhen: (prev, curr) => prev.selectedYear != curr.selectedYear,
-            listener: (context, state) {
-              _loadHolidays(state.selectedYear);
+          child: BlocBuilder<AttendanceCubit, AttendanceState>(
+            builder: (context, state) {
+              return Container(
+                height: MediaQuery.of(context).size.height * 0.7,
+                padding: const EdgeInsets.all(16),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                ),
+                child: const AttendanceCalendar(),
+              );
             },
-            child: Container(
-              height: MediaQuery.of(context).size.height * 0.7,
-              padding: const EdgeInsets.all(16),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-              ),
-              child: AttendanceCalendar(holidays: _holidays),
-            ),
           ),
         );
       },
@@ -170,13 +133,7 @@ class _AttendanceViewState extends State<_AttendanceView> {
                       ),
                     ),
                   ),
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(
-                      Icons.notifications_none,
-                      color: Colors.white,
-                    ),
-                  ),
+                  const Icon(Icons.notifications_none, color: Colors.white),
                 ],
               ),
             ),
@@ -188,108 +145,121 @@ class _AttendanceViewState extends State<_AttendanceView> {
               child: BlocBuilder<AttendanceCubit, AttendanceState>(
                 builder: (context, state) {
                   final cubit = context.read<AttendanceCubit>();
-                  final records = cubit.filteredRecords;
+                  final records = cubit.visibleRecords;
 
-                  return SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // TITLE + MONTH PICKER
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              "Attendance History",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
+                  if (state.loading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  return ListView(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                    children: [
+                      // TITLE + MONTH PICKER
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            "Attendance History",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          InkWell(
+                            onTap: () => _openCalendar(context),
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: AppColors.border),
+                              ),
+                              child: Row(
+                                children: [
+                                  Text(
+                                    _monthLabel(
+                                      state.selectedMonth,
+                                      state.selectedYear,
+                                    ),
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  const Icon(
+                                    Icons.keyboard_arrow_down,
+                                    size: 18,
+                                  ),
+                                ],
                               ),
                             ),
-                            InkWell(
-                              onTap: () => _openCalendar(context),
-                              borderRadius: BorderRadius.circular(12),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: AppColors.border),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Text(
-                                      _monthLabel(
-                                        state.selectedMonth,
-                                        state.selectedYear,
-                                      ),
-                                      style: const TextStyle(fontSize: 12),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    const Icon(
-                                      Icons.keyboard_arrow_down,
-                                      size: 18,
-                                    ),
-                                  ],
-                                ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 10),
+
+                      // FILTER
+                      Wrap(
+                        spacing: 8,
+                        children: AttendanceFilter.values.map((filter) {
+                          final isSelected = state.filter == filter;
+
+                          return GestureDetector(
+                            onTap: () => cubit.changeFilter(filter),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
                               ),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 10),
-
-                        // FILTER
-                        Wrap(
-                          spacing: 8,
-                          children: AttendanceFilter.values.map((filter) {
-                            final isSelected = state.filter == filter;
-                            final count = _getFilterCount(
-                              filter,
-                              state.records,
-                            );
-
-                            return GestureDetector(
-                              onTap: () => cubit.changeFilter(filter),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? AppColors.primary
+                                    : AppColors.background,
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
                                   color: isSelected
                                       ? AppColors.primary
-                                      : AppColors.background,
-                                  borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(
-                                    color: isSelected
-                                        ? AppColors.primary
-                                        : AppColors.border,
-                                  ),
-                                ),
-                                child: Text(
-                                  '($count) ${_filterLabel(filter)}',
-                                  style: TextStyle(
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.w500,
-                                    color: isSelected
-                                        ? Colors.white
-                                        : AppColors.textPrimary,
-                                  ),
+                                      : AppColors.border,
                                 ),
                               ),
-                            );
-                          }).toList(),
+                              child: Text(
+                                _filterLabel(filter),
+                                style: TextStyle(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w500,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : AppColors.textPrimary,
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+
+                      const SizedBox(height: 14),
+
+                      // SELECTED DATE INFO
+                      if (state.selectedDate != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Text(
+                            state.selectedHolidayName != null
+                                ? "Libur Nasional - ${state.selectedHolidayName}"
+                                : "Tanggal: ${state.selectedDate!.day}/${state.selectedDate!.month}/${state.selectedDate!.year}",
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.red,
+                            ),
+                          ),
                         ),
 
-                        const SizedBox(height: 14),
-
-                        // LIST
-                        ...records.map((e) => AttendanceCard(attendance: e)),
-                      ],
-                    ),
+                      // LIST
+                      ...records.map((e) => AttendanceCard(attendance: e)),
+                    ],
                   );
                 },
               ),
@@ -345,19 +315,6 @@ class _AttendanceViewState extends State<_AttendanceView> {
       "Dec",
     ];
     return "${months[month - 1]} $year";
-  }
-
-  static int _getFilterCount(AttendanceFilter filter, List records) {
-    switch (filter) {
-      case AttendanceFilter.all:
-        return records.length;
-      case AttendanceFilter.onTime:
-        return records.where((e) => e.isOnTime).length;
-      case AttendanceFilter.leave:
-        return records.where((e) => e.isLeave).length;
-      case AttendanceFilter.holiday:
-        return records.where((e) => e.isHoliday).length;
-    }
   }
 
   static String _filterLabel(AttendanceFilter filter) {

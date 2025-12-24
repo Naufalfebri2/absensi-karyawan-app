@@ -1,57 +1,53 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/services/holiday/holiday_service.dart';
 import '../../../domain/entities/attendance_entity.dart';
 import '../../../domain/repositories/attendance_repository.dart';
+import '../../../domain/usecases/attendance/check_in.dart';
 import 'attendance_state.dart';
 
 class AttendanceCubit extends Cubit<AttendanceState> {
   final AttendanceRepository repository;
+  final CheckIn checkInUseCase;
+  final HolidayService holidayService;
 
-  AttendanceCubit({required this.repository})
-    : super(AttendanceState.initial()) {
-    loadAttendance();
+  AttendanceCubit({
+    required this.repository,
+    required this.checkInUseCase,
+    required this.holidayService,
+  }) : super(AttendanceState.initial());
+
+  // ===================================================
+  // INIT (dipanggil dari router)
+  // ===================================================
+  Future<void> init() async {
+    final now = DateTime.now();
+
+    await loadAttendance(year: now.year, month: now.month);
+    await loadTodayAttendance();
+    await loadHolidays(now.year); // 🔥 WAJIB
   }
 
   // ===================================================
-  // LOAD ATTENDANCE (DEFAULT: CURRENT MONTH)
+  // LOAD HOLIDAYS
   // ===================================================
-  Future<void> loadAttendance() async {
+  Future<void> loadHolidays(int year) async {
     try {
-      emit(state.copyWith(loading: true));
-
-      final now = DateTime.now();
-
-      // 🔹 attendance hari ini
-      final todayAttendance = await repository.getTodayAttendance(now);
-
-      // 🔹 history per bulan (default sekarang)
-      final history = await repository.getAttendanceHistory(
-        year: now.year,
-        month: now.month,
-      );
-
-      emit(
-        state.copyWith(
-          loading: false,
-          todayAttendance: todayAttendance,
-          records: history,
-          selectedYear: now.year,
-          selectedMonth: now.month,
-        ),
-      );
+      final holidays = await holidayService.getNationalHolidays(year);
+      emit(state.copyWith(holidays: holidays));
     } catch (_) {
-      emit(state.copyWith(loading: false));
+      // holiday optional → tidak crash
     }
   }
 
   // ===================================================
-  // CHANGE MONTH & YEAR (FROM CALENDAR PICKER)
+  // LOAD ATTENDANCE HISTORY
   // ===================================================
-  Future<void> changeMonth({required int year, required int month}) async {
+  Future<void> loadAttendance({required int year, required int month}) async {
     try {
       emit(state.copyWith(loading: true));
 
-      final history = await repository.getAttendanceHistory(
+      final records = await repository.getAttendanceHistory(
         year: year,
         month: month,
       );
@@ -59,11 +55,11 @@ class AttendanceCubit extends Cubit<AttendanceState> {
       emit(
         state.copyWith(
           loading: false,
-          records: history,
+          records: records,
           selectedYear: year,
           selectedMonth: month,
-          selectedDate: null,
-          selectedHolidayName: null,
+          clearSelectedDate: true,
+          clearSelectedHoliday: true,
         ),
       );
     } catch (_) {
@@ -72,10 +68,73 @@ class AttendanceCubit extends Cubit<AttendanceState> {
   }
 
   // ===================================================
-  // SELECT DATE (FROM CALENDAR GRID)
+  // LOAD TODAY ATTENDANCE
   // ===================================================
-  void selectDate({required DateTime date, String? holidayName}) {
-    emit(state.copyWith(selectedDate: date, selectedHolidayName: holidayName));
+  Future<void> loadTodayAttendance() async {
+    try {
+      final today = await repository.getTodayAttendance();
+      emit(state.copyWith(todayAttendance: today));
+    } catch (_) {}
+  }
+
+  // ===================================================
+  // CHECK IN
+  // ===================================================
+  Future<void> checkIn({
+    required double latitude,
+    required double longitude,
+    required String photoPath,
+  }) async {
+    try {
+      emit(state.copyWith(actionLoading: true));
+
+      final attendance = await checkInUseCase(
+        latitude: latitude,
+        longitude: longitude,
+        photoPath: photoPath,
+      );
+
+      emit(state.copyWith(actionLoading: false, todayAttendance: attendance));
+
+      await loadAttendance(
+        year: state.selectedYear,
+        month: state.selectedMonth,
+      );
+    } catch (_) {
+      emit(state.copyWith(actionLoading: false));
+    }
+  }
+
+  // ===================================================
+  // CHANGE MONTH
+  // ===================================================
+  Future<void> changeMonth({required int year, required int month}) async {
+    // 🔥 1. UPDATE STATE DULU (BIAR UI LANGSUNG REBUILD)
+    emit(
+      state.copyWith(
+        selectedYear: year,
+        selectedMonth: month,
+        clearSelectedDate: true,
+        clearSelectedHoliday: true,
+      ),
+    );
+
+    // 🔥 2. LOAD DATA SETELAH UI UPDATE
+    await loadAttendance(year: year, month: month);
+    await loadHolidays(year);
+  }
+
+  // ===================================================
+  // SELECT DATE
+  // ===================================================
+  void selectDate(DateTime date, {String? holidayName}) {
+    emit(
+      state.copyWith(
+        selectedDate: date,
+        selectedHolidayName: holidayName,
+        clearSelectedHoliday: holidayName == null,
+      ),
+    );
   }
 
   // ===================================================
@@ -86,61 +145,37 @@ class AttendanceCubit extends Cubit<AttendanceState> {
   }
 
   // ===================================================
-  // CHECK IN
-  // ===================================================
-  Future<void> checkIn() async {
-    try {
-      emit(state.copyWith(actionLoading: true));
-
-      final now = DateTime.now();
-
-      final attendance = await repository.checkIn(now);
-
-      emit(state.copyWith(actionLoading: false, todayAttendance: attendance));
-
-      // reload history supaya sinkron
-      await loadAttendance();
-    } catch (_) {
-      emit(state.copyWith(actionLoading: false));
-    }
-  }
-
-  // ===================================================
-  // CHECK OUT
-  // ===================================================
-  Future<void> checkOut() async {
-    try {
-      emit(state.copyWith(actionLoading: true));
-
-      final now = DateTime.now();
-
-      final attendance = await repository.checkOut(now);
-
-      emit(state.copyWith(actionLoading: false, todayAttendance: attendance));
-
-      // reload history supaya sinkron
-      await loadAttendance();
-    } catch (_) {
-      emit(state.copyWith(actionLoading: false));
-    }
-  }
-
-  // ===================================================
-  // FILTERED RECORDS (FOR UI)
+  // FILTERED RECORDS
   // ===================================================
   List<AttendanceEntity> get filteredRecords {
+    final list = List<AttendanceEntity>.from(state.records);
+
     switch (state.filter) {
       case AttendanceFilter.onTime:
-        return state.records.where((e) => e.isOnTime).toList();
-
+        return list.where((e) => e.isOnTime).toList();
       case AttendanceFilter.leave:
-        return state.records.where((e) => e.isLeave).toList();
-
+        return list.where((e) => e.isLeave).toList();
       case AttendanceFilter.holiday:
-        return state.records.where((e) => e.isHoliday).toList();
-
+        return list.where((e) => e.isHoliday).toList();
       case AttendanceFilter.all:
-        return state.records;
+        return list;
     }
+  }
+
+  // ===================================================
+  // VISIBLE RECORDS
+  // ===================================================
+  List<AttendanceEntity> get visibleRecords {
+    if (state.selectedDate == null) return filteredRecords;
+
+    final d = state.selectedDate!;
+    return filteredRecords
+        .where(
+          (e) =>
+              e.date.year == d.year &&
+              e.date.month == d.month &&
+              e.date.day == d.day,
+        )
+        .toList();
   }
 }
