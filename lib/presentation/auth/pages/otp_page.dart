@@ -22,7 +22,6 @@ class _OtpPageState extends State<OtpPage> {
     6,
     (_) => TextEditingController(),
   );
-
   final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
 
   bool _submitted = false;
@@ -109,45 +108,22 @@ class _OtpPageState extends State<OtpPage> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
+    final viewInsets = MediaQuery.of(context).viewInsets;
 
     return Scaffold(
-      body: BlocConsumer<OtpCubit, OtpState>(
-        listener: (context, state) {
-          _submitted = false;
-
-          if (state is OtpSuccess) {
-            if (widget.purpose == OtpPurpose.login) {
-              context.read<AuthCubit>().setAuthenticated(
-                token: state.token,
-                user: state.user,
-              );
-            } else {
-              context.go('/reset-password', extra: {'email': widget.email});
-            }
-          }
-
-          if (state is OtpError) {
-            for (final c in _controllers) {
-              c.clear();
-            }
-            _focusNodes.first.requestFocus();
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-          }
-        },
-        builder: (context, state) {
-          final isLoading = state is OtpLoading;
-
-          return Stack(
+      resizeToAvoidBottomInset: true,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.only(bottom: viewInsets.bottom),
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          child: Column(
             children: [
-              // BACKGROUND
+              // ===============================
+              // HEADER / LOGO AREA (AMAN)
+              // ===============================
               Container(
-                height: size.height * 0.45,
+                width: double.infinity,
+                padding: const EdgeInsets.only(top: 32, bottom: 48),
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
@@ -155,106 +131,126 @@ class _OtpPageState extends State<OtpPage> {
                     colors: [Color(0xFF624731), Color(0xFF8A6A4F)],
                   ),
                 ),
-              ),
-
-              // CARD
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Container(
-                  width: double.infinity,
-                  margin: EdgeInsets.only(
-                    left: 2,
-                    right: 2,
-                    top: size.height * 0.28,
-                    bottom: 16,
-                  ),
-                  padding: const EdgeInsets.fromLTRB(24, 32, 24, 32),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(32),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.14),
-                        blurRadius: 4,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text(
-                        'Verifikasi OTP',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Kode dikirim ke ${_maskEmail(widget.email)}',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 32),
-
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: List.generate(6, _otpBox),
-                      ),
-
-                      const SizedBox(height: 32),
-
-                      SizedBox(
-                        width: size.width * 0.75,
-                        height: 48,
-                        child: ElevatedButton(
-                          onPressed: isLoading ? null : _submitOtp,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFE6F4EF),
-                            foregroundColor: const Color(0xFF2A7C6F),
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                          ),
-                          child: isLoading
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Text(
-                                  'Verifikasi',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      TextButton(
-                        onPressed: isLoading ? null : () {},
-                        child: const Text(
-                          'Kirim ulang OTP',
-                          style: TextStyle(fontSize: 13),
-                        ),
-                      ),
-                    ],
-                  ),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 16),
+                    Image.asset(
+                      'assets/images/logo.png',
+                      height: 72,
+                      fit: BoxFit.contain,
+                    ),
+                  ],
                 ),
               ),
+
+              // ===============================
+              // CARD OTP
+              // ===============================
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.fromLTRB(24, 32, 24, 32),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(32),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.14),
+                      blurRadius: 4,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: BlocConsumer<OtpCubit, OtpState>(
+                  listener: (context, state) {
+                    _submitted = false;
+
+                    if (state is OtpSuccess) {
+                      if (widget.purpose == OtpPurpose.login) {
+                        context.read<AuthCubit>().setAuthenticated(
+                          token: state.token,
+                          user: state.user,
+                        );
+                      } else {
+                        context.go(
+                          '/reset-password',
+                          extra: {'email': widget.email},
+                        );
+                      }
+                    }
+
+                    if (state is OtpError) {
+                      for (final c in _controllers) {
+                        c.clear();
+                      }
+                      _focusNodes.first.requestFocus();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(state.message),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  },
+                  builder: (context, state) {
+                    final isLoading = state is OtpLoading;
+
+                    return Column(
+                      children: [
+                        const Text(
+                          'Verifikasi OTP',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Kode dikirim ke ${_maskEmail(widget.email)}',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 32),
+
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: List.generate(6, _otpBox),
+                        ),
+
+                        const SizedBox(height: 32),
+
+                        SizedBox(
+                          width: double.infinity,
+                          height: 48,
+                          child: ElevatedButton(
+                            onPressed: isLoading ? null : _submitOtp,
+                            child: isLoading
+                                ? const CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  )
+                                : const Text('Verifikasi'),
+                          ),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        TextButton(
+                          onPressed: isLoading ? null : () {},
+                          child: const Text('Kirim ulang OTP'),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 32),
             ],
-          );
-        },
+          ),
+        ),
       ),
     );
   }

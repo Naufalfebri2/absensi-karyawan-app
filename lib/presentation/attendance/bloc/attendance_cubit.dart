@@ -18,9 +18,10 @@ class AttendanceCubit extends Cubit<AttendanceState> {
   Future<void> init() async {
     final now = DateTime.now();
 
+    // 🔥 urutan aman
+    await loadHolidays(now.year);
     await loadAttendance(year: now.year, month: now.month);
     await loadTodayAttendance();
-    await loadHolidays(now.year);
   }
 
   // ===================================================
@@ -31,17 +32,17 @@ class AttendanceCubit extends Cubit<AttendanceState> {
       final holidays = await holidayService.getNationalHolidays(year);
       emit(state.copyWith(holidays: holidays));
     } catch (_) {
-      // holiday optional → tidak crash
+      // optional: jangan crash UI
     }
   }
 
   // ===================================================
-  // LOAD ATTENDANCE HISTORY
+  // LOAD ATTENDANCE HISTORY (PER BULAN)
   // ===================================================
   Future<void> loadAttendance({required int year, required int month}) async {
-    try {
-      emit(state.copyWith(loading: true));
+    emit(state.copyWith(loading: true));
 
+    try {
       final records = await repository.getAttendanceHistory(
         year: year,
         month: month,
@@ -69,7 +70,9 @@ class AttendanceCubit extends Cubit<AttendanceState> {
     try {
       final today = await repository.getTodayAttendance();
       emit(state.copyWith(todayAttendance: today));
-    } catch (_) {}
+    } catch (_) {
+      // optional
+    }
   }
 
   // ===================================================
@@ -85,12 +88,12 @@ class AttendanceCubit extends Cubit<AttendanceState> {
       ),
     );
 
-    await loadAttendance(year: year, month: month);
     await loadHolidays(year);
+    await loadAttendance(year: year, month: month);
   }
 
   // ===================================================
-  // SELECT DATE
+  // SELECT DATE (CALENDAR → LIST)
   // ===================================================
   void selectDate(DateTime date, {String? holidayName}) {
     emit(
@@ -110,6 +113,56 @@ class AttendanceCubit extends Cubit<AttendanceState> {
   }
 
   // ===================================================
+  // SYNC AFTER CHECK IN
+  // ===================================================
+  void syncAfterCheckIn({
+    required DateTime checkInTime,
+    required AttendanceStatus status,
+  }) {
+    final today = _normalizeDate(checkInTime);
+    final formattedTime = _formatTime(checkInTime);
+
+    final updatedToday = state.todayAttendance?.copyWith(
+      checkInTime: formattedTime,
+      status: status,
+    );
+
+    final updatedRecords = state.records.map((e) {
+      if (_isSameDate(e.date, today)) {
+        return e.copyWith(checkInTime: formattedTime, status: status);
+      }
+      return e;
+    }).toList();
+
+    emit(
+      state.copyWith(todayAttendance: updatedToday, records: updatedRecords),
+    );
+  }
+
+  // ===================================================
+  // SYNC AFTER CHECK OUT
+  // ===================================================
+  void syncAfterCheckOut({required DateTime checkOutTime}) {
+    final today = _normalizeDate(checkOutTime);
+    final formattedTime = _formatTime(checkOutTime);
+
+    final updatedToday = state.todayAttendance?.copyWith(
+      checkOutTime: formattedTime,
+    );
+
+    final updatedRecords = state.records.map((e) {
+      if (_isSameDate(e.date, today)) {
+        return e.copyWith(checkOutTime: formattedTime);
+      }
+      return e;
+    }).toList();
+
+    emit(
+      state.copyWith(todayAttendance: updatedToday, records: updatedRecords),
+    );
+  }
+
+  // ===================================================
   // FILTERED RECORDS
   // ===================================================
   List<AttendanceEntity> get filteredRecords {
@@ -117,7 +170,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
 
     switch (state.filter) {
       case AttendanceFilter.onTime:
-        return list.where((e) => e.isOnTime).toList();
+        return list.where((e) => e.isOnTime || e.isLate).toList();
       case AttendanceFilter.leave:
         return list.where((e) => e.isLeave).toList();
       case AttendanceFilter.holiday:
@@ -128,19 +181,23 @@ class AttendanceCubit extends Cubit<AttendanceState> {
   }
 
   // ===================================================
-  // VISIBLE RECORDS
+  // VISIBLE RECORDS (FILTER + SELECTED DATE)
   // ===================================================
   List<AttendanceEntity> get visibleRecords {
     if (state.selectedDate == null) return filteredRecords;
 
     final d = state.selectedDate!;
-    return filteredRecords
-        .where(
-          (e) =>
-              e.date.year == d.year &&
-              e.date.month == d.month &&
-              e.date.day == d.day,
-        )
-        .toList();
+    return filteredRecords.where((e) => _isSameDate(e.date, d)).toList();
   }
+
+  // ===================================================
+  // HELPERS
+  // ===================================================
+  DateTime _normalizeDate(DateTime d) => DateTime(d.year, d.month, d.day);
+
+  bool _isSameDate(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  String _formatTime(DateTime time) =>
+      '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
 }

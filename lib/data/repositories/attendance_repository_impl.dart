@@ -8,7 +8,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
   AttendanceRepositoryImpl({required this.remoteDataSource});
 
   // ===============================
-  // ATTENDANCE HISTORY
+  // READ
   // ===============================
   @override
   Future<List<AttendanceEntity>> getAttendanceHistory({
@@ -18,16 +18,13 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     return remoteDataSource.getAttendanceHistory(year: year, month: month);
   }
 
-  // ===============================
-  // TODAY ATTENDANCE
-  // ===============================
   @override
   Future<AttendanceEntity?> getTodayAttendance() {
     return remoteDataSource.getTodayAttendance();
   }
 
   // ===============================
-  // CHECK IN
+  // LEGACY (BACKWARD COMPATIBLE)
   // ===============================
   @override
   Future<AttendanceEntity> checkIn({
@@ -42,11 +39,42 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     );
   }
 
-  // ===============================
-  // CHECK OUT
-  // ===============================
   @override
   Future<AttendanceEntity> checkOut() {
     return remoteDataSource.checkOut();
+  }
+
+  // ===============================
+  // 🔥 NEW API (RECOMMENDED)
+  // ===============================
+
+  @override
+  Future<AttendanceEntity> saveCheckIn({
+    required DateTime time,
+    required AttendanceStatus status,
+    required String selfiePath,
+    double? latitude,
+    double? longitude,
+  }) {
+    return remoteDataSource.saveCheckIn(
+      time: time,
+      status: status,
+      selfiePath: selfiePath,
+      latitude: latitude,
+      longitude: longitude,
+    );
+  }
+
+  @override
+  Future<AttendanceEntity> saveCheckOut({
+    required DateTime time,
+    required AttendanceStatus status,
+    required String selfiePath,
+  }) {
+    return remoteDataSource.saveCheckOut(
+      time: time,
+      status: status,
+      selfiePath: selfiePath,
+    );
   }
 }

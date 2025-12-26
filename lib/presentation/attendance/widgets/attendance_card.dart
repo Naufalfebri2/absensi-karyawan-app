@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../domain/entities/attendance_entity.dart';
 import '../../../config/theme/app_colors.dart';
 
@@ -9,9 +10,7 @@ class AttendanceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasTime =
-        attendance.checkInTime != null || attendance.checkOutTime != null;
-
+    final hasTime = attendance.hasCheckIn || attendance.hasCheckOut;
     final statusColor = _statusColor(attendance.status);
 
     return Container(
@@ -66,6 +65,7 @@ class AttendanceCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // STATUS LABEL
                 Text(
                   _statusLabel(attendance.status),
                   style: TextStyle(
@@ -75,41 +75,27 @@ class AttendanceCard extends StatelessWidget {
                   ),
                 ),
 
+                // CHECK IN / OUT TIME
                 if (hasTime) ...[
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      if (attendance.checkInTime != null) ...[
-                        const Icon(
-                          Icons.login,
-                          size: 14,
-                          color: AppColors.success,
-                        ),
+                      if (attendance.hasCheckIn) ...[
+                        Icon(Icons.login, size: 14, color: statusColor),
                         const SizedBox(width: 4),
                         Text(
                           attendance.checkInTime!,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.success,
-                          ),
+                          style: TextStyle(fontSize: 12, color: statusColor),
                         ),
                       ],
-                      if (attendance.checkInTime != null &&
-                          attendance.checkOutTime != null)
+                      if (attendance.hasCheckIn && attendance.hasCheckOut)
                         const SizedBox(width: 12),
-                      if (attendance.checkOutTime != null) ...[
-                        const Icon(
-                          Icons.logout,
-                          size: 14,
-                          color: AppColors.danger,
-                        ),
+                      if (attendance.hasCheckOut) ...[
+                        Icon(Icons.logout, size: 14, color: statusColor),
                         const SizedBox(width: 4),
                         Text(
                           attendance.checkOutTime!,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.danger,
-                          ),
+                          style: TextStyle(fontSize: 12, color: statusColor),
                         ),
                       ],
                     ],
@@ -129,17 +115,17 @@ class AttendanceCard extends StatelessWidget {
   String _statusLabel(AttendanceStatus status) {
     switch (status) {
       case AttendanceStatus.onTime:
-        return "On Time";
+        return 'On Time';
       case AttendanceStatus.late:
-        return "Late";
+        return 'Late';
       case AttendanceStatus.leave:
-        return "Leave";
+        return 'Leave';
       case AttendanceStatus.holiday:
-        return "Holiday";
+        return 'Holiday';
       case AttendanceStatus.earlyLeave:
-        return "Early Leave";
+        return 'Early Leave';
       case AttendanceStatus.overtime:
-        return "Overtime";
+        return 'Overtime';
     }
   }
 

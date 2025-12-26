@@ -1,14 +1,44 @@
-abstract class HomeState {}
+import 'package:equatable/equatable.dart';
 
-class HomeInitial extends HomeState {}
+abstract class HomeState extends Equatable {
+  const HomeState();
 
-class HomeLoading extends HomeState {}
+  @override
+  List<Object?> get props => [];
+}
 
+// ===============================
+// INITIAL
+// ===============================
+class HomeInitial extends HomeState {
+  const HomeInitial();
+}
+
+// ===============================
+// LOADING
+// ===============================
+class HomeLoading extends HomeState {
+  final HomeLoaded? previous;
+
+  const HomeLoading({this.previous});
+
+  @override
+  List<Object?> get props => [previous];
+}
+
+// ===============================
+// LOADED
+// ===============================
 class HomeLoaded extends HomeState {
   final int pendingLeaveCount;
   final DateTime now;
   final String locationName;
+
+  // ===============================
+  // ATTENDANCE STATE
+  // ===============================
   final bool hasCheckedIn;
+  final bool hasCheckedOut; // 🔒 KUNCI UTAMA
 
   // ===============================
   // HOLIDAY
@@ -24,17 +54,18 @@ class HomeLoaded extends HomeState {
   final String? restrictionMessage;
 
   // ===============================
-  // GPS VALIDATION 🔥 (INI FIX ERROR)
+  // GPS VALIDATION
   // ===============================
   final bool isWithinOfficeRadius;
-  final double? distanceFromOffice; // meter
+  final double? distanceFromOffice;
   final String? gpsErrorMessage;
 
-  HomeLoaded({
+  const HomeLoaded({
     required this.pendingLeaveCount,
     required this.now,
     required this.locationName,
     required this.hasCheckedIn,
+    required this.hasCheckedOut,
     required this.isHoliday,
     this.holidayName,
     required this.canCheckIn,
@@ -44,4 +75,56 @@ class HomeLoaded extends HomeState {
     this.distanceFromOffice,
     this.gpsErrorMessage,
   });
+
+  // ===============================
+  // COPY WITH
+  // ===============================
+  HomeLoaded copyWith({
+    int? pendingLeaveCount,
+    DateTime? now,
+    String? locationName,
+    bool? hasCheckedIn,
+    bool? hasCheckedOut,
+    bool? isHoliday,
+    String? holidayName,
+    bool? canCheckIn,
+    bool? canCheckOut,
+    String? restrictionMessage,
+    bool? isWithinOfficeRadius,
+    double? distanceFromOffice,
+    String? gpsErrorMessage,
+  }) {
+    return HomeLoaded(
+      pendingLeaveCount: pendingLeaveCount ?? this.pendingLeaveCount,
+      now: now ?? this.now,
+      locationName: locationName ?? this.locationName,
+      hasCheckedIn: hasCheckedIn ?? this.hasCheckedIn,
+      hasCheckedOut: hasCheckedOut ?? this.hasCheckedOut,
+      isHoliday: isHoliday ?? this.isHoliday,
+      holidayName: holidayName ?? this.holidayName,
+      canCheckIn: canCheckIn ?? this.canCheckIn,
+      canCheckOut: canCheckOut ?? this.canCheckOut,
+      restrictionMessage: restrictionMessage ?? this.restrictionMessage,
+      isWithinOfficeRadius: isWithinOfficeRadius ?? this.isWithinOfficeRadius,
+      distanceFromOffice: distanceFromOffice ?? this.distanceFromOffice,
+      gpsErrorMessage: gpsErrorMessage ?? this.gpsErrorMessage,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+    pendingLeaveCount,
+    now,
+    locationName,
+    hasCheckedIn,
+    hasCheckedOut,
+    isHoliday,
+    holidayName,
+    canCheckIn,
+    canCheckOut,
+    restrictionMessage,
+    isWithinOfficeRadius,
+    distanceFromOffice,
+    gpsErrorMessage,
+  ];
 }

@@ -13,7 +13,6 @@ class AttendancePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ❗ Cubit SUDAH disediakan oleh app_router.dart
     return const _AttendanceView();
   }
 }

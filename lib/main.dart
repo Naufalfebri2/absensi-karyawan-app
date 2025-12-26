@@ -19,6 +19,11 @@ import 'presentation/auth/bloc/auth_cubit.dart';
 import 'presentation/home/bloc/home_cubit.dart';
 
 // ===============================
+// NOTIFICATION CUBIT
+// ===============================
+import 'presentation/notifications/bloc/notification_cubit.dart';
+
+// ===============================
 // USECASES - AUTH
 // ===============================
 import 'domain/usecases/auth/login_user.dart';
@@ -33,6 +38,17 @@ import 'domain/usecases/leave/create_leave.dart';
 import 'domain/usecases/leave/get_pending_leaves.dart';
 import 'domain/usecases/leave/approve_leave.dart';
 import 'domain/usecases/leave/reject_leave.dart';
+
+// ===============================
+// USECASES - ATTENDANCE
+// ===============================
+import 'domain/usecases/attendance/get_today_attendance.dart';
+
+// ===============================
+// USECASES - NOTIFICATION 🔥
+// ===============================
+import 'domain/usecases/notification/get_notifications.dart';
+import 'domain/usecases/notification/mark_as_read.dart';
 
 // ===============================
 // DATA - AUTH
@@ -54,6 +70,12 @@ import 'data/datasources/remote/attendance_remote.dart';
 import 'domain/repositories/attendance_repository.dart';
 
 // ===============================
+// DATA - NOTIFICATION 🔥
+// ===============================
+import 'data/datasources/remote/notification_remote.dart';
+import 'data/repositories/notification_repository_impl.dart';
+
+// ===============================
 // CORE
 // ===============================
 import 'core/network/dio_client.dart';
@@ -72,6 +94,7 @@ void main() async {
   // CORE
   // ===============================
   final storage = LocalStorageService();
+
   DioClient.setupInterceptors(storage);
   final dio = DioClient.instance;
 
@@ -96,7 +119,18 @@ void main() async {
   );
 
   // ===============================
-  // SERVICES (SINGLE INSTANCE)
+  // NOTIFICATION 🔥
+  // ===============================
+  final notificationRemote = NotificationRemoteDataSourceImpl();
+  final notificationRepository = NotificationRepositoryImpl(
+    remoteDataSource: notificationRemote,
+  );
+
+  final getNotifications = GetNotifications(notificationRepository);
+  final markAsRead = MarkAsRead(notificationRepository);
+
+  // ===============================
+  // SERVICES
   // ===============================
   final holidayService = HolidayService();
   final locationService = LocationService();
@@ -114,6 +148,8 @@ void main() async {
       holidayService: holidayService,
       locationService: locationService,
       authCubit: authCubit,
+      getNotifications: getNotifications,
+      markAsRead: markAsRead,
     ),
   );
 }
@@ -126,6 +162,10 @@ class AbsensiApp extends StatelessWidget {
   final LocationService locationService;
   final AuthCubit authCubit;
 
+  // 🔥 NOTIFICATION USECASES
+  final GetNotifications getNotifications;
+  final MarkAsRead markAsRead;
+
   const AbsensiApp({
     super.key,
     required this.authRepository,
@@ -134,6 +174,8 @@ class AbsensiApp extends StatelessWidget {
     required this.holidayService,
     required this.locationService,
     required this.authCubit,
+    required this.getNotifications,
+    required this.markAsRead,
   });
 
   @override
@@ -182,6 +224,19 @@ class AbsensiApp extends StatelessWidget {
         RepositoryProvider<RejectLeaveUsecase>(
           create: (_) => RejectLeaveUsecase(leaveRepository),
         ),
+
+        // ===============================
+        // ATTENDANCE USECASES
+        // ===============================
+        RepositoryProvider<GetTodayAttendance>(
+          create: (_) => GetTodayAttendance(attendanceRepository),
+        ),
+
+        // ===============================
+        // NOTIFICATION USECASES 🔥
+        // ===============================
+        RepositoryProvider<GetNotifications>.value(value: getNotifications),
+        RepositoryProvider<MarkAsRead>.value(value: markAsRead),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -194,10 +249,21 @@ class AbsensiApp extends StatelessWidget {
           // HOME (GLOBAL)
           // ===============================
           BlocProvider<HomeCubit>(
-            create: (_) => HomeCubit(
+            create: (context) => HomeCubit(
               holidayService: holidayService,
               locationService: locationService,
+              getTodayAttendance: context.read<GetTodayAttendance>(),
             )..loadDashboard(),
+          ),
+
+          // ===============================
+          // NOTIFICATION (GLOBAL 🔔🔥)
+          // ===============================
+          BlocProvider<NotificationCubit>(
+            create: (context) => NotificationCubit(
+              getNotifications: context.read<GetNotifications>(),
+              markAsRead: context.read<MarkAsRead>(),
+            )..loadNotifications(),
           ),
         ],
         child: MaterialApp.router(

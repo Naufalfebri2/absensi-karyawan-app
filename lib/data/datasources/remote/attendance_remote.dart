@@ -7,7 +7,7 @@ class AttendanceRemote {
   AttendanceRemote(this.dio);
 
   // ===============================
-  // GET ATTENDANCE HISTORY
+  // ATTENDANCE HISTORY
   // ===============================
   Future<List<AttendanceEntity>> getAttendanceHistory({
     required int year,
@@ -16,16 +16,10 @@ class AttendanceRemote {
     final response = await dio.get(
       '/attendance',
       queryParameters: {'year': year, 'month': month},
-      options: Options(
-        headers: {
-          'Accept': 'application/json',
-          // 'Authorization': 'Bearer TOKEN', // jika belum pakai interceptor
-        },
-      ),
+      options: Options(headers: {'Accept': 'application/json'}),
     );
 
     final data = response.data['data'];
-
     if (data == null || data is! List) return [];
 
     return data
@@ -36,27 +30,100 @@ class AttendanceRemote {
   }
 
   // ===============================
-  // GET TODAY ATTENDANCE
+  // TODAY ATTENDANCE
   // ===============================
   Future<AttendanceEntity?> getTodayAttendance() async {
-    final response = await dio.get(
-      '/attendance/today',
+    try {
+      final response = await dio.get(
+        '/attendance/today',
+        options: Options(headers: {'Accept': 'application/json'}),
+      );
+
+      final data = response.data['data'];
+      if (data == null) return null;
+
+      return AttendanceEntity.fromJson(Map<String, dynamic>.from(data));
+    } on DioException catch (e) {
+      // 404 = belum ada presensi hari ini
+      if (e.response?.statusCode == 404) {
+        return null;
+      }
+      rethrow;
+    }
+  }
+
+  // ===============================
+  // 🔥 SAVE CHECK IN (API BARU)
+  // ===============================
+  Future<AttendanceEntity> saveCheckIn({
+    required DateTime time,
+    required AttendanceStatus status,
+    required String selfiePath,
+    double? latitude,
+    double? longitude,
+  }) async {
+    final formData = FormData.fromMap({
+      'time': _formatTime(time),
+      'latitude': latitude,
+      'longitude': longitude,
+      'flag': 'check-in',
+      'photo': await MultipartFile.fromFile(
+        selfiePath,
+        filename: selfiePath.split('/').last,
+      ),
+    });
+
+    final response = await dio.post(
+      '/attendance/presensi',
+      data: formData,
       options: Options(
         headers: {
           'Accept': 'application/json',
-          // 'Authorization': 'Bearer TOKEN',
+          'Content-Type': 'multipart/form-data',
         },
       ),
     );
 
-    final data = response.data['data'];
-    if (data == null) return null;
-
-    return AttendanceEntity.fromJson(Map<String, dynamic>.from(data));
+    return AttendanceEntity.fromJson(
+      Map<String, dynamic>.from(response.data['data']),
+    );
   }
 
   // ===============================
-  // CHECK IN
+  // 🔥 SAVE CHECK OUT (API BARU)
+  // ===============================
+  Future<AttendanceEntity> saveCheckOut({
+    required DateTime time,
+    required AttendanceStatus status,
+    required String selfiePath,
+  }) async {
+    final formData = FormData.fromMap({
+      'time': _formatTime(time),
+      'flag': 'check-out',
+      'photo': await MultipartFile.fromFile(
+        selfiePath,
+        filename: selfiePath.split('/').last,
+      ),
+    });
+
+    final response = await dio.post(
+      '/attendance/presensi',
+      data: formData,
+      options: Options(
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'multipart/form-data',
+        },
+      ),
+    );
+
+    return AttendanceEntity.fromJson(
+      Map<String, dynamic>.from(response.data['data']),
+    );
+  }
+
+  // ===============================
+  // LEGACY (JANGAN DIHAPUS)
   // ===============================
   Future<AttendanceEntity> checkIn({
     required double latitude,
@@ -68,14 +135,20 @@ class AttendanceRemote {
       data: {
         'latitude': latitude,
         'longitude': longitude,
-        'PhotoPath': photoPath, // 🔥 HARUS SAMA DENGAN API
+        'photoPath': photoPath,
       },
-      options: Options(
-        headers: {
-          'Accept': 'application/json',
-          // 'Authorization': 'Bearer TOKEN',
-        },
-      ),
+      options: Options(headers: {'Accept': 'application/json'}),
+    );
+
+    return AttendanceEntity.fromJson(
+      Map<String, dynamic>.from(response.data['data']),
+    );
+  }
+
+  Future<AttendanceEntity> checkOut() async {
+    final response = await dio.post(
+      '/attendance/checkout',
+      options: Options(headers: {'Accept': 'application/json'}),
     );
 
     return AttendanceEntity.fromJson(
@@ -84,21 +157,11 @@ class AttendanceRemote {
   }
 
   // ===============================
-  // CHECK OUT
+  // HELPER
   // ===============================
-  Future<AttendanceEntity> checkOut() async {
-    final response = await dio.post(
-      '/attendance/checkout',
-      options: Options(
-        headers: {
-          'Accept': 'application/json',
-          // 'Authorization': 'Bearer TOKEN',
-        },
-      ),
-    );
-
-    return AttendanceEntity.fromJson(
-      Map<String, dynamic>.from(response.data['data']),
-    );
+  String _formatTime(DateTime time) {
+    final h = time.hour.toString().padLeft(2, '0');
+    final m = time.minute.toString().padLeft(2, '0');
+    return '$h:$m';
   }
 }

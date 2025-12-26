@@ -9,10 +9,18 @@ import 'package:absensi_karyawan_app/main.dart';
 import 'package:absensi_karyawan_app/data/repositories/auth_repository_impl.dart';
 import 'package:absensi_karyawan_app/data/repositories/leave_repository_impl.dart';
 import 'package:absensi_karyawan_app/data/repositories/attendance_repository_impl.dart';
+import 'package:absensi_karyawan_app/data/repositories/notification_repository_impl.dart';
 
 import 'package:absensi_karyawan_app/data/datasources/remote/auth_remote.dart';
 import 'package:absensi_karyawan_app/data/datasources/remote/leave_remote.dart';
 import 'package:absensi_karyawan_app/data/datasources/remote/attendance_remote.dart';
+import 'package:absensi_karyawan_app/data/datasources/remote/notification_remote.dart';
+
+// ===============================
+// DOMAIN USECASES
+// ===============================
+import 'package:absensi_karyawan_app/domain/usecases/notification/get_notifications.dart';
+import 'package:absensi_karyawan_app/domain/usecases/notification/mark_as_read.dart';
 
 // ===============================
 // CORE
@@ -54,10 +62,21 @@ void main() {
     );
 
     // ===============================
+    // NOTIFICATION 🔔
+    // ===============================
+    final notificationRemote = NotificationRemoteDataSourceImpl();
+    final notificationRepository = NotificationRepositoryImpl(
+      remoteDataSource: notificationRemote,
+    );
+
+    final getNotifications = GetNotifications(notificationRepository);
+    final markAsRead = MarkAsRead(notificationRepository);
+
+    // ===============================
     // SERVICES
     // ===============================
     final holidayService = HolidayService();
-    final locationService = LocationService(); // ✅ FIX
+    final locationService = LocationService();
 
     // ===============================
     // AUTH CUBIT
@@ -75,6 +94,8 @@ void main() {
         holidayService: holidayService,
         locationService: locationService,
         authCubit: authCubit,
+        getNotifications: getNotifications,
+        markAsRead: markAsRead,
       ),
     );
 

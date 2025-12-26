@@ -15,18 +15,17 @@ import 'package:dio/dio.dart';
 /// }
 /// =======================================================
 class HolidayService {
-  late final Dio _dio;
+  final Dio _dio;
 
-  HolidayService() {
-    _dio = Dio(
-      BaseOptions(
-        baseUrl: 'https://api-harilibur.vercel.app',
-        connectTimeout: const Duration(seconds: 15),
-        receiveTimeout: const Duration(seconds: 15),
-        headers: {'Accept': 'application/json'},
-      ),
-    );
-  }
+  HolidayService()
+    : _dio = Dio(
+        BaseOptions(
+          baseUrl: 'https://api-harilibur.vercel.app',
+          connectTimeout: const Duration(seconds: 15),
+          receiveTimeout: const Duration(seconds: 15),
+          headers: {'Accept': 'application/json'},
+        ),
+      );
 
   /// ===================================================
   /// GET NATIONAL HOLIDAYS BY YEAR
@@ -35,16 +34,21 @@ class HolidayService {
     try {
       final response = await _dio.get('/api');
 
-      if (response.data is! List) return {};
+      if (response.data is! List) {
+        return {};
+      }
 
       final Map<DateTime, String> holidays = {};
 
-      for (final item in response.data) {
-        if (item is! Map<String, dynamic>) continue;
+      for (final rawItem in response.data as List) {
+        if (rawItem is! Map) continue;
+
+        final item = Map<String, dynamic>.from(rawItem);
+
         if (item['is_national_holiday'] != true) continue;
 
         final rawDate = item['holiday_date'];
-        final parsedDate = DateTime.tryParse(rawDate ?? '');
+        final parsedDate = DateTime.tryParse(rawDate?.toString() ?? '');
         if (parsedDate == null || parsedDate.year != year) continue;
 
         final normalizedDate = DateTime(
@@ -63,7 +67,10 @@ class HolidayService {
       }
 
       return holidays;
-    } catch (_) {
+    } catch (e) {
+      // Safe debug (tidak crash, tidak throw)
+      // ignore: avoid_print
+      print('[HolidayService] Error: $e');
       return {};
     }
   }

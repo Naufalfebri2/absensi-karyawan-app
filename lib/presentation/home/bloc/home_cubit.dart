@@ -8,124 +8,164 @@ import '../../../core/utils/distance_utils.dart';
 
 import '../../../domain/entities/shift_entity.dart';
 import '../../../domain/entities/office_location_entity.dart';
+import '../../../domain/usecases/attendance/get_today_attendance.dart';
 
 import 'home_state.dart';
 
 class HomeCubit extends Cubit<HomeState> {
   final HolidayService holidayService;
   final LocationService locationService;
+  final GetTodayAttendance getTodayAttendance;
 
-  HomeCubit({required this.holidayService, required this.locationService})
-    : super(HomeInitial());
-
-  Timer? _timer;
-  bool _hasCheckedIn = false;
+  HomeCubit({
+    required this.holidayService,
+    required this.locationService,
+    required this.getTodayAttendance,
+  }) : super(const HomeInitial());
 
   // ===============================
-  // DEFAULT SHIFT (08:00 - 17:00)
+  // TIMERS
+  // ===============================
+  Timer? _clockTimer;
+  Timer? _gpsTimer;
+
+  // ===============================
+  // ATTENDANCE STATE
+  // ===============================
+  bool _hasCheckedIn = false;
+  bool _hasCheckedOut = false;
+
+  // ===============================
+  // STATIC CONFIG
   // ===============================
   final ShiftEntity _shift = ShiftEntity.defaultShift();
-
-  // ===============================
-  // OFFICE LOCATION (100m)
-  // ===============================
   final OfficeLocationEntity _office = OfficeLocationEntity.defaultOffice();
 
   // ===============================
-  // HOLIDAY CACHE
+  // CACHE
   // ===============================
   Map<DateTime, String> _holidayCache = {};
+  double? _distanceFromOffice;
+  String? _gpsErrorMessage;
 
   // ===============================
-  // LOAD DASHBOARD
+  // LOAD DASHBOARD (INIT)
   // ===============================
   Future<void> loadDashboard() async {
-    final now = DateTime.now();
+    emit(const HomeLoading());
 
-    _holidayCache = await holidayService.getNationalHolidays(now.year);
+    await _loadTodayFromSource();
 
-    await _emitHomeData();
+    _clockTimer?.cancel();
+    _clockTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      (_) => _emitHomeState(DateTime.now()),
+    );
 
-    _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      _emitHomeData();
+    _gpsTimer?.cancel();
+    _gpsTimer = Timer.periodic(const Duration(seconds: 15), (_) async {
+      await _updateGps();
+      _emitHomeState(DateTime.now());
     });
   }
 
   // ===============================
-  // EMIT HOME STATE
+  // 🔥 AUTO REFRESH HOME (BARU)
   // ===============================
-  Future<void> _emitHomeData() async {
+  Future<void> refresh() async {
+    await _loadTodayFromSource();
+    _emitHomeState(DateTime.now());
+  }
+
+  // ===============================
+  // LOAD TODAY FROM SOURCE (SINGLE SOURCE OF TRUTH)
+  // ===============================
+  Future<void> _loadTodayFromSource() async {
     final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
 
-    // ===============================
-    // HOLIDAY CHECK
-    // ===============================
-    final holidayName = _holidayCache[today];
-    final isHoliday = holidayName != null;
+    final todayAttendance = await getTodayAttendance();
+    if (todayAttendance != null) {
+      _hasCheckedIn = todayAttendance.hasCheckIn;
+      _hasCheckedOut = todayAttendance.hasCheckOut;
+    } else {
+      _hasCheckedIn = false;
+      _hasCheckedOut = false;
+    }
 
-    bool canCheckIn = false;
-    bool canCheckOut = false;
-    bool isWithinOfficeRadius = false;
-    double? distanceFromOffice;
-    String? restrictionMessage;
-    String? gpsErrorMessage;
+    _holidayCache = await holidayService.getNationalHolidays(now.year);
 
-    // ===============================
-    // GPS VALIDATION (PRIORITY)
-    // ===============================
+    await _updateGps();
+  }
+
+  // ===============================
+  // UPDATE GPS
+  // ===============================
+  Future<void> _updateGps() async {
     try {
       final userLocation = await locationService.getLatLng();
 
-      distanceFromOffice = DistanceUtils.distanceInMeters(
+      _distanceFromOffice = DistanceUtils.distanceInMeters(
         lat1: userLocation.latitude,
         lon1: userLocation.longitude,
         lat2: _office.latitude,
         lon2: _office.longitude,
       );
 
-      isWithinOfficeRadius = distanceFromOffice <= _office.radiusMeter;
-
-      if (!isWithinOfficeRadius) {
-        restrictionMessage =
-            'Anda berada di luar radius kantor (${DistanceUtils.formatDistance(distanceFromOffice)})';
-      }
+      _gpsErrorMessage = null;
     } catch (e) {
-      gpsErrorMessage = e.toString();
-      restrictionMessage = gpsErrorMessage;
+      _distanceFromOffice = null;
+      _gpsErrorMessage = e.toString();
     }
+  }
 
-    // ===============================
-    // TIME & HOLIDAY VALIDATION
-    // ===============================
-    if (restrictionMessage == null) {
-      if (isHoliday) {
-        restrictionMessage = 'Hari libur nasional';
+  // ===============================
+  // EMIT HOME STATE (FINAL LOGIC)
+  // ===============================
+  void _emitHomeState(DateTime now) {
+    final today = DateTime(now.year, now.month, now.day);
+
+    final holidayName = _holidayCache[today];
+    final isHoliday = holidayName != null;
+
+    final isWithinOfficeRadius =
+        _distanceFromOffice != null &&
+        _distanceFromOffice! <= _office.radiusMeter;
+
+    bool canCheckIn = false;
+    bool canCheckOut = false;
+    String? restrictionMessage;
+
+    if (_gpsErrorMessage != null) {
+      restrictionMessage = 'GPS tidak tersedia';
+    } else if (_hasCheckedOut) {
+      restrictionMessage = 'Anda sudah Check Out hari ini';
+    } else if (isHoliday) {
+      restrictionMessage = 'Hari libur nasional: $holidayName';
+    } else {
+      if (!_hasCheckedIn) {
+        canCheckIn = true;
+
+        final shiftStart = _shift.getStartDateTime(now);
+        final lateLimit = shiftStart.add(
+          Duration(minutes: _shift.toleranceMinutes),
+        );
+
+        if (now.isBefore(shiftStart)) {
+          restrictionMessage = 'Belum masuk jam kerja';
+        } else if (now.isAfter(lateLimit)) {
+          restrictionMessage = 'Anda Check-In terlambat';
+        }
       } else {
-        if (!_hasCheckedIn) {
-          if (_shift.canCheckIn(now)) {
-            canCheckIn = true;
-          } else {
-            final shiftStart = _shift.getStartDateTime(now);
-            final lateLimit = shiftStart.add(
-              Duration(minutes: _shift.toleranceMinutes),
-            );
-
-            if (now.isBefore(shiftStart)) {
-              restrictionMessage = 'Belum masuk jam kerja';
-            } else if (now.isAfter(lateLimit)) {
-              restrictionMessage = 'Sudah melewati batas Check In';
-            }
-          }
+        if (_shift.canCheckOut(now)) {
+          canCheckOut = true;
         } else {
-          if (_shift.canCheckOut(now)) {
-            canCheckOut = true;
-          } else {
-            restrictionMessage = 'Belum waktunya Check Out';
-          }
+          restrictionMessage = 'Belum waktunya Check Out';
         }
       }
+    }
+
+    if (!isWithinOfficeRadius && restrictionMessage == null) {
+      restrictionMessage = 'Anda berada di luar radius kantor';
     }
 
     emit(
@@ -134,34 +174,38 @@ class HomeCubit extends Cubit<HomeState> {
         now: now,
         locationName: 'Universitas Pamulang, Tangerang Selatan',
         hasCheckedIn: _hasCheckedIn,
+        hasCheckedOut: _hasCheckedOut,
         isHoliday: isHoliday,
         holidayName: holidayName,
         canCheckIn: canCheckIn,
         canCheckOut: canCheckOut,
-        isWithinOfficeRadius: isWithinOfficeRadius,
-        distanceFromOffice: distanceFromOffice,
-        gpsErrorMessage: gpsErrorMessage,
         restrictionMessage: restrictionMessage,
+        isWithinOfficeRadius: isWithinOfficeRadius,
+        distanceFromOffice: _distanceFromOffice,
+        gpsErrorMessage: _gpsErrorMessage,
       ),
     );
   }
 
   // ===============================
-  // UI TOGGLE
+  // UI OPTIMIZATION (OPTIONAL)
   // ===============================
   void markCheckedIn() {
     _hasCheckedIn = true;
-    _emitHomeData();
+    _hasCheckedOut = false;
+    _emitHomeState(DateTime.now());
   }
 
   void markCheckedOut() {
     _hasCheckedIn = false;
-    _emitHomeData();
+    _hasCheckedOut = true;
+    _emitHomeState(DateTime.now());
   }
 
   @override
   Future<void> close() {
-    _timer?.cancel();
+    _clockTimer?.cancel();
+    _gpsTimer?.cancel();
     return super.close();
   }
 }

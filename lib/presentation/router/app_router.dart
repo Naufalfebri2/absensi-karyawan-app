@@ -18,12 +18,16 @@ import '../home/bloc/home_cubit.dart';
 import '../home/bloc/home_state.dart';
 import '../home/pages/home_page.dart';
 
+import '../notifications/pages/notification_page.dart';
+
 import '../calendar/pages/calendar_page.dart';
 
 import '../attendance/pages/attendance_page.dart';
 import '../attendance/pages/checkin_page.dart';
 import '../attendance/pages/checkout_page.dart';
 import '../attendance/bloc/attendance_cubit.dart';
+import '../attendance/bloc/checkin_cubit.dart';
+import '../attendance/bloc/checkout_cubit.dart';
 
 import '../profile/pages/profile_page.dart';
 
@@ -34,6 +38,9 @@ import '../admin/pages/leave_approval_page.dart';
 import '../admin/leave/bloc/leave_approval_cubit.dart';
 
 import '../../core/services/holiday/holiday_service.dart';
+import '../../core/services/location/location_service.dart';
+
+import '../../domain/usecases/attendance/get_today_attendance.dart';
 
 import 'go_router_refresh_stream.dart';
 
@@ -59,9 +66,6 @@ class AppRouter {
       initialLocation: '/login',
       refreshListenable: GoRouterRefreshStream(authCubit.stream),
 
-      // ===============================
-      // AUTH REDIRECT
-      // ===============================
       redirect: (context, state) {
         final authState = authCubit.state;
         final location = state.matchedLocation;
@@ -91,16 +95,13 @@ class AppRouter {
       },
 
       routes: [
-        // ===============================
         // AUTH
-        // ===============================
         GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
 
         GoRoute(
           path: '/otp',
           builder: (context, state) {
             final authState = context.read<AuthCubit>().state;
-
             if (authState is! AuthOtpRequired) {
               return const LoginPage();
             }
@@ -128,19 +129,22 @@ class AppRouter {
           },
         ),
 
-        // ===============================
         // HOME
-        // ===============================
-        GoRoute(path: '/home', builder: (context, state) => const HomePage()),
+        GoRoute(path: '/home', builder: (_, __) => const HomePage()),
 
-        // ===============================
+        // Notification
+        GoRoute(
+          path: '/notifications',
+          name: 'notifications',
+          builder: (context, state) {
+            return const NotificationPage();
+          },
+        ),
+
         // CALENDAR
-        // ===============================
         GoRoute(path: '/calendar', builder: (_, __) => const CalendarPage()),
 
-        // ===============================
         // ATTENDANCE LIST
-        // ===============================
         GoRoute(
           path: '/attendance',
           builder: (context, state) {
@@ -154,35 +158,46 @@ class AppRouter {
           },
         ),
 
-        // ===============================
-        // CHECK IN (BLOCKED ON HOLIDAY)
-        // ===============================
+        // ✅ CHECK IN (FIX)
         GoRoute(
           path: '/attendance/checkin',
           builder: (context, state) {
             if (_isTodayHoliday(context)) {
               return const HolidayBlockedPage();
             }
-            return const CheckInPage();
+
+            return BlocProvider(
+              create: (_) => CheckInCubit(
+                locationService: context.read<LocationService>(),
+                getTodayAttendance: context.read<GetTodayAttendance>(),
+                attendanceRepository: context.read(),
+              ),
+
+              child: const CheckInPage(),
+            );
           },
         ),
 
-        // ===============================
-        // CHECK OUT (BLOCKED ON HOLIDAY)
-        // ===============================
+        // ✅ CHECK OUT
         GoRoute(
           path: '/attendance/checkout',
           builder: (context, state) {
             if (_isTodayHoliday(context)) {
               return const HolidayBlockedPage();
             }
-            return const CheckOutPage();
+
+            return BlocProvider(
+              create: (_) => CheckOutCubit(
+                locationService: context.read<LocationService>(),
+                attendanceRepository: context.read(),
+              ),
+
+              child: const CheckOutPage(),
+            );
           },
         ),
 
-        // ===============================
         // LEAVE
-        // ===============================
         GoRoute(
           path: '/leave',
           builder: (context, state) {
@@ -210,9 +225,7 @@ class AppRouter {
           },
         ),
 
-        // ===============================
         // PROFILE
-        // ===============================
         GoRoute(path: '/profile', builder: (_, __) => const ProfilePage()),
       ],
     );
