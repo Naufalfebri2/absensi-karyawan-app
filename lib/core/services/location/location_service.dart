@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 
 /// =======================================================
@@ -55,6 +56,8 @@ class LocationService {
   /// ===================================================
   Future<LatLng> getLatLng() async {
     final position = await getCurrentPosition();
+    debugPrint("LAT: ${position.latitude}");
+    debugPrint("LNG: ${position.longitude}");
 
     return LatLng(latitude: position.latitude, longitude: position.longitude);
   }

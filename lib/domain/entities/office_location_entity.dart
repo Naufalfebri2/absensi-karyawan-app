@@ -28,8 +28,8 @@ class OfficeLocationEntity {
   /// ===================================================
   factory OfficeLocationEntity.defaultOffice() {
     return const OfficeLocationEntity(
-      latitude: -6.343033, // 📍 Contoh: Universitas Pamulang
-      longitude: 106.738285,
+      latitude: -6.3441667, // 📍 Contoh: Universitas Pamulang
+      longitude: 106.737155,
       radiusMeter: 100,
     );
   }
