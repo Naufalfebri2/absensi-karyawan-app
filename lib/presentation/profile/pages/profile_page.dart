@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../auth/bloc/auth_cubit.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -26,7 +29,7 @@ class _ProfilePageState extends State<ProfilePage> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Color(0xFF623B00), // warna coklat dari figma
+              primary: Color(0xFF623B00),
               onPrimary: Colors.white,
               onSurface: Colors.black,
             ),
@@ -45,6 +48,32 @@ class _ProfilePageState extends State<ProfilePage> {
             "${picked.year}";
       });
     }
+  }
+
+  // =======================
+  // LOGOUT CONFIRM DIALOG
+  // =======================
+  void _showLogoutDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Apakah Anda yakin ingin keluar dari aplikasi?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              context.read<AuthCubit>().logout();
+            },
+            child: const Text('Logout', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -70,14 +99,13 @@ class _ProfilePageState extends State<ProfilePage> {
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 10),
 
               // =======================
-              // PROFILE AVATAR (Logo Anda digunakan)
+              // PROFILE AVATAR
               // =======================
               Stack(
                 alignment: Alignment.bottomRight,
@@ -104,17 +132,11 @@ class _ProfilePageState extends State<ProfilePage> {
 
               const SizedBox(height: 24),
 
-              // =======================
-              // NAME
-              // =======================
               fieldLabel("Name"),
               buildField(nameC, hint: "XXXXXXXXXXXX"),
 
               const SizedBox(height: 16),
 
-              // =======================
-              // EMAIL
-              // =======================
               fieldLabel("Email"),
               buildField(
                 emailC,
@@ -124,17 +146,11 @@ class _ProfilePageState extends State<ProfilePage> {
 
               const SizedBox(height: 16),
 
-              // =======================
-              // ROLL NUMBER
-              // =======================
               fieldLabel("Roll Number"),
               buildField(rollC, hint: "202XXXXX"),
 
               const SizedBox(height: 16),
 
-              // =======================
-              // DATE OF BIRTH
-              // =======================
               fieldLabel("Date of Birth"),
               GestureDetector(
                 onTap: pickDate,
@@ -149,9 +165,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
               const SizedBox(height: 16),
 
-              // =======================
-              // AADHAAR NUMBER
-              // =======================
               fieldLabel("Aadhaar Number"),
               buildField(aadhaarC, hint: "3802 0999 XXXX"),
 
@@ -182,6 +195,30 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
 
+              const SizedBox(height: 24),
+
+              // =======================
+              // LOGOUT BUTTON
+              // =======================
+              OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 50),
+                  side: const BorderSide(color: Colors.red),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: _showLogoutDialog,
+                child: const Text(
+                  "Logout",
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+
               const SizedBox(height: 40),
             ],
           ),
@@ -204,7 +241,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   // =======================
-  // TEXT FIELD (CUSTOM)
+  // TEXT FIELD
   // =======================
   Widget buildField(
     TextEditingController controller, {

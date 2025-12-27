@@ -19,7 +19,7 @@ class OfficeLocationEntity {
   const OfficeLocationEntity({
     required this.latitude,
     required this.longitude,
-    this.radiusMeter = 100,
+    this.radiusMeter = 300,
   });
 
   /// ===================================================
@@ -30,7 +30,7 @@ class OfficeLocationEntity {
     return const OfficeLocationEntity(
       latitude: -6.3441667, // 📍 Contoh: Universitas Pamulang
       longitude: 106.737155,
-      radiusMeter: 100,
+      radiusMeter: 300,
     );
   }
 
