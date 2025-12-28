@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import '../../../domain/entities/attendance_entity.dart';
+import '../../../domain/entities/attendance_action_entity.dart';
 
 class AttendanceRemote {
   final Dio dio;
@@ -55,7 +56,7 @@ class AttendanceRemote {
   // ===============================
   // 🔥 SAVE CHECK IN (API BARU)
   // ===============================
-  Future<AttendanceEntity> saveCheckIn({
+  Future<AttendanceActionEntity> saveCheckIn({
     required DateTime time,
     required AttendanceStatus status,
     required String selfiePath,
@@ -84,7 +85,7 @@ class AttendanceRemote {
       ),
     );
 
-    return AttendanceEntity.fromJson(
+    return AttendanceActionEntity.fromJson(
       Map<String, dynamic>.from(response.data['data']),
     );
   }
@@ -116,6 +117,8 @@ class AttendanceRemote {
         },
       ),
     );
+
+    
 
     return AttendanceEntity.fromJson(
       Map<String, dynamic>.from(response.data['data']),

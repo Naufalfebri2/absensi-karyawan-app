@@ -1,6 +1,7 @@
 import '../../domain/entities/attendance_entity.dart';
 import '../../domain/repositories/attendance_repository.dart';
 import '../datasources/remote/attendance_remote.dart';
+import '../../domain/entities/attendance_action_entity.dart';
 
 class AttendanceRepositoryImpl implements AttendanceRepository {
   final AttendanceRemote remoteDataSource;
@@ -49,7 +50,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
   // ===============================
 
   @override
-  Future<AttendanceEntity> saveCheckIn({
+  Future<AttendanceActionEntity> saveCheckIn({
     required DateTime time,
     required AttendanceStatus status,
     required String selfiePath,

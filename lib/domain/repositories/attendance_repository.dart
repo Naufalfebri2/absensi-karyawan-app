@@ -1,3 +1,5 @@
+import 'package:absensi_karyawan_app/domain/entities/attendance_action_entity.dart';
+
 import '../entities/attendance_entity.dart';
 
 abstract class AttendanceRepository {
@@ -28,7 +30,7 @@ abstract class AttendanceRepository {
   // ===============================
 
   /// Simpan Check-In lengkap (selfie + status)
-  Future<AttendanceEntity> saveCheckIn({
+  Future<AttendanceActionEntity> saveCheckIn({
     required DateTime time,
     required AttendanceStatus status,
     required String selfiePath,

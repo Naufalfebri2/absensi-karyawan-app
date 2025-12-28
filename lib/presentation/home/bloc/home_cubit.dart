@@ -63,7 +63,7 @@ class HomeCubit extends Cubit<HomeState> {
     );
 
     _gpsTimer?.cancel();
-    _gpsTimer = Timer.periodic(const Duration(seconds: 15), (_) async {
+    _gpsTimer = Timer.periodic(const Duration(seconds: 1000), (_) async {
       await _updateGps();
       _emitHomeState(DateTime.now());
     });

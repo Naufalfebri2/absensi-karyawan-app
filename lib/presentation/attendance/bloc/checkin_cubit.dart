@@ -106,8 +106,9 @@ class CheckInCubit extends Cubit<CheckInState> {
       emit(CheckInSuccess(status: status, checkInTime: now));
     } on LocationException catch (e) {
       emit(CheckInFailure(e.message));
-    } catch (_) {
-      emit(const CheckInFailure('Gagal melakukan Check In'));
+    } catch (e) {
+
+      emit(CheckInFailure(e.toString()));
     }
   }
 
