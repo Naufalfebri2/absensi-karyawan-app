@@ -15,7 +15,7 @@ class CalendarGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<CalendarCubit, CalendarState>(
-      builder: (context, CalendarState state) {
+      builder: (context, state) {
         final focusedMonth = state.focusedMonth;
         final selectedDate = state.selectedDate;
 
@@ -44,7 +44,7 @@ class CalendarGrid extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildMonthYearSelector(context, focusedMonth),
+              _buildMonthYearSelector(context, state),
               const SizedBox(height: 8),
 
               // ===============================
@@ -91,7 +91,6 @@ class CalendarGrid extends StatelessWidget {
 
                   final isSelected = _isSameDate(date, selectedDate);
 
-                  // 🔥 CEK LIBUR NASIONAL
                   final isHoliday = HolidayUtils.isHoliday(
                     date,
                     HolidayLocal.holidays,
@@ -100,7 +99,7 @@ class CalendarGrid extends StatelessWidget {
                   return CalendarDayCell(
                     date: date,
                     isSelected: isSelected,
-                    isHoliday: isHoliday, // 🔥 PENTING
+                    isHoliday: isHoliday,
                     size: 28,
                     fontSize: 12,
                     onTap: () => context.read<CalendarCubit>().selectDate(date),
@@ -115,9 +114,9 @@ class CalendarGrid extends StatelessWidget {
   }
 
   // ===============================
-  // MONTH & YEAR SELECTOR
+  // MONTH & YEAR SELECTOR (FIXED)
   // ===============================
-  Widget _buildMonthYearSelector(BuildContext context, DateTime focusedMonth) {
+  Widget _buildMonthYearSelector(BuildContext context, CalendarState state) {
     final months = const [
       "Jan",
       "Feb",
@@ -133,12 +132,6 @@ class CalendarGrid extends StatelessWidget {
       "Dec",
     ];
 
-    final currentYear = DateTime.now().year;
-    final years = List<int>.generate(
-      currentYear - 1990 + 1,
-      (index) => 1990 + index,
-    );
-
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -147,18 +140,14 @@ class CalendarGrid extends StatelessWidget {
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
           icon: const Icon(Icons.chevron_left),
-          onPressed: () {
-            context.read<CalendarCubit>().changeMonth(
-              DateTime(focusedMonth.year, focusedMonth.month - 1),
-            );
-          },
+          onPressed: () => context.read<CalendarCubit>().previousMonth(),
         ),
 
+        // MONTH DROPDOWN
         DropdownButton<int>(
-          value: focusedMonth.month,
+          value: state.selectedMonth,
           underline: const SizedBox(),
           isDense: true,
-          style: const TextStyle(fontSize: 13, color: Colors.black),
           items: List.generate(12, (index) {
             return DropdownMenuItem<int>(
               value: index + 1,
@@ -167,20 +156,18 @@ class CalendarGrid extends StatelessWidget {
           }),
           onChanged: (month) {
             if (month == null) return;
-            context.read<CalendarCubit>().changeMonth(
-              DateTime(focusedMonth.year, month),
-            );
+            context.read<CalendarCubit>().changeMonth(month);
           },
         ),
 
         const SizedBox(width: 4),
 
+        // YEAR DROPDOWN
         DropdownButton<int>(
-          value: focusedMonth.year,
+          value: state.selectedYear,
           underline: const SizedBox(),
           isDense: true,
-          style: const TextStyle(fontSize: 13, color: Colors.black),
-          items: years
+          items: state.availableYears
               .map(
                 (year) => DropdownMenuItem<int>(
                   value: year,
@@ -190,9 +177,7 @@ class CalendarGrid extends StatelessWidget {
               .toList(),
           onChanged: (year) {
             if (year == null) return;
-            context.read<CalendarCubit>().changeMonth(
-              DateTime(year, focusedMonth.month),
-            );
+            context.read<CalendarCubit>().changeYear(year);
           },
         ),
 
@@ -201,11 +186,7 @@ class CalendarGrid extends StatelessWidget {
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
           icon: const Icon(Icons.chevron_right),
-          onPressed: () {
-            context.read<CalendarCubit>().changeMonth(
-              DateTime(focusedMonth.year, focusedMonth.month + 1),
-            );
-          },
+          onPressed: () => context.read<CalendarCubit>().nextMonth(),
         ),
       ],
     );

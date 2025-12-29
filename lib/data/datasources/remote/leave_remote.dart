@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:dio/dio.dart';
 import '../../../config/api_endpoints.dart';
 
@@ -39,6 +40,7 @@ class LeaveRemote {
 
   /// CREATE leave (pengajuan cuti / izin)
   Future<void> createLeave({
+    required int employeeId, // ⬅️ DITAMBAHKAN
     required String leaveType,
     required DateTime startDate,
     required DateTime endDate,
@@ -48,6 +50,7 @@ class LeaveRemote {
   }) async {
     try {
       final formData = FormData.fromMap({
+        'employee_id': employeeId, // ⬅️ WAJIB UNTUK BACKEND
         'leave_type': leaveType,
         'start_date': _formatDate(startDate),
         'end_date': _formatDate(endDate),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../config/theme/app_colors.dart';
 import '../../auth/bloc/auth_cubit.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -19,6 +21,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
   DateTime? selectedDate;
 
+  // ===============================
+  // DATE PICKER (TETAP)
+  // ===============================
   Future<void> pickDate() async {
     final picked = await showDatePicker(
       context: context,
@@ -29,7 +34,7 @@ class _ProfilePageState extends State<ProfilePage> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Color(0xFF623B00),
+              primary: AppColors.primary,
               onPrimary: Colors.white,
               onSurface: Colors.black,
             ),
@@ -50,9 +55,9 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  // =======================
-  // LOGOUT CONFIRM DIALOG
-  // =======================
+  // ===============================
+  // LOGOUT CONFIRM
+  // ===============================
   void _showLogoutDialog() {
     showDialog(
       context: context,
@@ -76,160 +81,258 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  // ===============================
+  // ROUTE-BASED INDEX
+  // ===============================
+  int _getIndexFromLocation(BuildContext context) {
+    final location = GoRouterState.of(context).uri.toString();
+
+    if (location.startsWith('/home')) return 0;
+    if (location.startsWith('/calendar')) return 1;
+    if (location.startsWith('/attendance')) return 2;
+    if (location.startsWith('/leave')) return 3;
+    if (location.startsWith('/profile')) return 4;
+
+    return 0;
+  }
+
+  void _onNavTap(BuildContext context, int index) {
+    if (_getIndexFromLocation(context) == index) return;
+
+    final router = GoRouter.of(context);
+
+    switch (index) {
+      case 0:
+        router.go('/home');
+        break;
+      case 1:
+        router.go('/calendar');
+        break;
+      case 2:
+        router.go('/attendance');
+        break;
+      case 3:
+        router.go('/leave');
+        break;
+      case 4:
+        router.go('/profile');
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // =======================
-      // APPBAR
-      // =======================
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF623B00),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          "Profile",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-        ),
-        centerTitle: true,
-      ),
+      backgroundColor: AppColors.background,
 
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 10),
-
-              // =======================
-              // PROFILE AVATAR
-              // =======================
-              Stack(
-                alignment: Alignment.bottomRight,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // ===============================
+            // HEADER (SAMA DENGAN PAGE LAIN)
+            // ===============================
+            Container(
+              height: 72,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: const BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(24),
+                  bottomRight: Radius.circular(24),
+                ),
+              ),
+              child: Row(
                 children: [
-                  CircleAvatar(
-                    radius: 65,
-                    backgroundColor: const Color(0xFFF4E8E8),
-                    backgroundImage: const AssetImage("assets/images/logo.png"),
-                  ),
                   Container(
-                    padding: const EdgeInsets.all(6),
+                    width: 36,
+                    height: 36,
                     decoration: const BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Color(0xFF623B00),
-                    ),
-                    child: const Icon(
-                      Icons.edit,
                       color: Colors.white,
-                      size: 20,
+                    ),
+                    padding: const EdgeInsets.all(6),
+                    child: Image.asset('assets/images/logo.png'),
+                  ),
+                  const Expanded(
+                    child: Center(
+                      child: Text(
+                        "Profile",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ),
+                  const Icon(Icons.notifications_none, color: Colors.white),
                 ],
               ),
+            ),
 
-              const SizedBox(height: 24),
-
-              fieldLabel("Name"),
-              buildField(nameC, hint: "XXXXXXXXXXXX"),
-
-              const SizedBox(height: 16),
-
-              fieldLabel("Email"),
-              buildField(
-                emailC,
-                hint: "xxxxxxx@gmail.com",
-                suffix: const Icon(Icons.email_outlined),
-              ),
-
-              const SizedBox(height: 16),
-
-              fieldLabel("Roll Number"),
-              buildField(rollC, hint: "202XXXXX"),
-
-              const SizedBox(height: 16),
-
-              fieldLabel("Date of Birth"),
-              GestureDetector(
-                onTap: pickDate,
-                child: AbsorbPointer(
-                  child: buildField(
-                    birthC,
-                    hint: "23/05/19XX",
-                    suffix: const Icon(Icons.keyboard_arrow_down),
-                  ),
+            // ===============================
+            // CONTENT (TETAP)
+            // ===============================
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
                 ),
-              ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 10),
 
-              const SizedBox(height: 16),
-
-              fieldLabel("Aadhaar Number"),
-              buildField(aadhaarC, hint: "3802 0999 XXXX"),
-
-              const SizedBox(height: 30),
-
-              // =======================
-              // SAVE BUTTON
-              // =======================
-              SizedBox(
-                width: double.infinity,
-                height: 55,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF623B00),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                    // AVATAR
+                    Stack(
+                      alignment: Alignment.bottomRight,
+                      children: [
+                        const CircleAvatar(
+                          radius: 65,
+                          backgroundColor: Color(0xFFF4E8E8),
+                          backgroundImage: AssetImage("assets/images/logo.png"),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.primary,
+                          ),
+                          child: const Icon(
+                            Icons.edit,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  onPressed: () {},
-                  child: const Text(
-                    "Save changes",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+
+                    const SizedBox(height: 24),
+
+                    fieldLabel("Name"),
+                    buildField(nameC, hint: "XXXXXXXXXXXX"),
+
+                    const SizedBox(height: 16),
+
+                    fieldLabel("Email"),
+                    buildField(
+                      emailC,
+                      hint: "xxxxxxx@gmail.com",
+                      suffix: const Icon(Icons.email_outlined),
                     ),
-                  ),
+
+                    const SizedBox(height: 16),
+
+                    fieldLabel("Roll Number"),
+                    buildField(rollC, hint: "202XXXXX"),
+
+                    const SizedBox(height: 16),
+
+                    fieldLabel("Date of Birth"),
+                    GestureDetector(
+                      onTap: pickDate,
+                      child: AbsorbPointer(
+                        child: buildField(
+                          birthC,
+                          hint: "23/05/19XX",
+                          suffix: const Icon(Icons.keyboard_arrow_down),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    fieldLabel("Aadhaar Number"),
+                    buildField(aadhaarC, hint: "3802 0999 XXXX"),
+
+                    const SizedBox(height: 30),
+
+                    // SAVE
+                    SizedBox(
+                      width: double.infinity,
+                      height: 55,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: () {},
+                        child: const Text(
+                          "Save changes",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // LOGOUT
+                    OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 50),
+                        side: const BorderSide(color: Colors.red),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: _showLogoutDialog,
+                      child: const Text(
+                        "Logout",
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 40),
+                  ],
                 ),
               ),
-
-              const SizedBox(height: 24),
-
-              // =======================
-              // LOGOUT BUTTON
-              // =======================
-              OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 50),
-                  side: const BorderSide(color: Colors.red),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                onPressed: _showLogoutDialog,
-                child: const Text(
-                  "Logout",
-                  style: TextStyle(
-                    color: Colors.red,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 40),
-            ],
-          ),
+            ),
+          ],
         ),
+      ),
+
+      // ===============================
+      // BOTTOM NAV (FINAL)
+      // ===============================
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _getIndexFromLocation(context),
+        onTap: (index) => _onNavTap(context, index),
+        backgroundColor: AppColors.primary,
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.white70,
+        type: BottomNavigationBarType.fixed,
+        showUnselectedLabels: true,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.calendar_month),
+            label: "Calendar",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.access_time),
+            label: "Attendance",
+          ),
+          BottomNavigationBarItem(icon: Icon(Icons.mail), label: "Leave"),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
+        ],
       ),
     );
   }
 
-  // =======================
-  // LABEL FIELD
-  // =======================
+  // ===============================
+  // HELPERS (TETAP)
+  // ===============================
   Widget fieldLabel(String text) {
     return Align(
       alignment: Alignment.centerLeft,
@@ -240,9 +343,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // =======================
-  // TEXT FIELD
-  // =======================
   Widget buildField(
     TextEditingController controller, {
     String? hint,

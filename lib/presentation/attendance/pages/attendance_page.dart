@@ -21,7 +21,7 @@ class _AttendanceView extends StatelessWidget {
   const _AttendanceView();
 
   // ===============================
-  // OPEN CALENDAR
+  // OPEN CALENDAR (TETAP)
   // ===============================
   void _openCalendar(BuildContext context) {
     final cubit = context.read<AttendanceCubit>();
@@ -52,7 +52,7 @@ class _AttendanceView extends StatelessWidget {
   }
 
   // ===============================
-  // BOTTOM NAV
+  // ROUTE-BASED CURRENT INDEX
   // ===============================
   int _getIndexFromLocation(BuildContext context) {
     final location = GoRouterState.of(context).uri.toString();
@@ -66,7 +66,12 @@ class _AttendanceView extends StatelessWidget {
     return 0;
   }
 
+  // ===============================
+  // NAV HANDLER (FIXED)
+  // ===============================
   void _onNavTap(BuildContext context, int index) {
+    if (_getIndexFromLocation(context) == index) return;
+
     final router = GoRouter.of(context);
 
     switch (index) {
@@ -92,11 +97,12 @@ class _AttendanceView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+
       body: SafeArea(
         child: Column(
           children: [
             // ===============================
-            // HEADER
+            // HEADER (TETAP)
             // ===============================
             Container(
               height: 72,
@@ -138,7 +144,7 @@ class _AttendanceView extends StatelessWidget {
             ),
 
             // ===============================
-            // CONTENT
+            // CONTENT (TETAP)
             // ===============================
             Expanded(
               child: BlocBuilder<AttendanceCubit, AttendanceState>(
@@ -268,7 +274,7 @@ class _AttendanceView extends StatelessWidget {
       ),
 
       // ===============================
-      // BOTTOM NAV
+      // BOTTOM NAV (FIXED & SYNC)
       // ===============================
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _getIndexFromLocation(context),
@@ -296,7 +302,7 @@ class _AttendanceView extends StatelessWidget {
   }
 
   // ===============================
-  // HELPERS
+  // HELPERS (TETAP)
   // ===============================
   static String _monthLabel(int month, int year) {
     const months = [

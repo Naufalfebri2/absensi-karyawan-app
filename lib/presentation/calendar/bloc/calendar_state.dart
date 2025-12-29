@@ -5,7 +5,7 @@ class CalendarEvent {
   final String subtitle;
   final String avatarUrl;
 
-  CalendarEvent({
+  const CalendarEvent({
     required this.title,
     required this.subtitle,
     required this.avatarUrl,
@@ -13,29 +13,56 @@ class CalendarEvent {
 }
 
 class CalendarState extends Equatable {
+  // ===============================
+  // CORE DATE STATE
+  // ===============================
   final DateTime focusedMonth;
   final DateTime selectedDate;
+
+  // ===============================
+  // MONTH & YEAR CONTROL (ANTI CRASH)
+  // ===============================
+  final int selectedYear;
+  final int selectedMonth;
+  final List<int> availableYears;
+
+  // ===============================
+  // EVENTS & UI STATE
+  // ===============================
   final List<CalendarEvent> events;
   final bool loading;
 
-  // 🔥 HR FEATURE (DITAMBAHKAN)
+  // ===============================
+  // HOLIDAY
+  // ===============================
   final bool isHoliday;
   final String? holidayName;
 
   const CalendarState({
     required this.focusedMonth,
     required this.selectedDate,
+    required this.selectedYear,
+    required this.selectedMonth,
+    required this.availableYears,
     this.events = const [],
     this.loading = false,
     this.isHoliday = false,
     this.holidayName,
   });
 
+  // ===============================
+  // INITIAL STATE
+  // ===============================
   factory CalendarState.initial() {
     final now = DateTime.now();
+    final years = List.generate(now.year - 1990 + 1, (i) => 1990 + i);
+
     return CalendarState(
       focusedMonth: DateTime(now.year, now.month),
       selectedDate: now,
+      selectedYear: now.year,
+      selectedMonth: now.month,
+      availableYears: years,
       events: const [],
       loading: false,
       isHoliday: false,
@@ -43,9 +70,15 @@ class CalendarState extends Equatable {
     );
   }
 
+  // ===============================
+  // COPY WITH
+  // ===============================
   CalendarState copyWith({
     DateTime? focusedMonth,
     DateTime? selectedDate,
+    int? selectedYear,
+    int? selectedMonth,
+    List<int>? availableYears,
     List<CalendarEvent>? events,
     bool? loading,
     bool? isHoliday,
@@ -54,6 +87,9 @@ class CalendarState extends Equatable {
     return CalendarState(
       focusedMonth: focusedMonth ?? this.focusedMonth,
       selectedDate: selectedDate ?? this.selectedDate,
+      selectedYear: selectedYear ?? this.selectedYear,
+      selectedMonth: selectedMonth ?? this.selectedMonth,
+      availableYears: availableYears ?? this.availableYears,
       events: events ?? this.events,
       loading: loading ?? this.loading,
       isHoliday: isHoliday ?? this.isHoliday,
@@ -65,6 +101,9 @@ class CalendarState extends Equatable {
   List<Object?> get props => [
     focusedMonth,
     selectedDate,
+    selectedYear,
+    selectedMonth,
+    availableYears,
     events,
     loading,
     isHoliday,

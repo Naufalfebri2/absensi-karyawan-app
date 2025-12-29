@@ -78,6 +78,21 @@ class HomeCubit extends Cubit<HomeState> {
   }
 
   // ===============================
+  // 🔒 ENSURE AUTO REFRESH (SAFE GUARD)
+  // ===============================
+  void ensureAutoRefresh() {
+    // Jika timer jam belum aktif (misal setelah pindah tab),
+    // aktifkan kembali TANPA reload API
+    if (_clockTimer == null || !_clockTimer!.isActive) {
+      _clockTimer?.cancel();
+      _clockTimer = Timer.periodic(
+        const Duration(seconds: 1),
+        (_) => _emitHomeState(DateTime.now()),
+      );
+    }
+  }
+
+  // ===============================
   // LOAD TODAY FROM SOURCE (SINGLE SOURCE OF TRUTH)
   // ===============================
   Future<void> _loadTodayFromSource() async {

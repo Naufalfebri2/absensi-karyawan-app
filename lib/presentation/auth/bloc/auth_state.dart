@@ -22,7 +22,7 @@ class AuthLoading extends AuthState {}
 /// ===============================
 class AuthAuthenticated extends AuthState {
   final String token;
-  final dynamic user;
+  final UserEntity user; // ✅ FIX: JANGAN dynamic
 
   const AuthAuthenticated({required this.token, required this.user});
 
@@ -36,7 +36,7 @@ class AuthAuthenticated extends AuthState {
 class AuthUnauthenticated extends AuthState {}
 
 /// ===============================
-/// OTP REQUIRED STATE (INI KUNCI)
+/// OTP REQUIRED STATE
 /// ===============================
 class AuthOtpRequired extends AuthState {
   final String email;

@@ -4,18 +4,25 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../domain/usecases/leave/get_leaves.dart';
 import '../../../domain/usecases/leave/create_leave.dart';
+import '../../../domain/entities/user_entity.dart';
 import 'leave_state.dart';
 
 class LeaveCubit extends Cubit<LeaveState> {
   final GetLeaves getLeaves;
   final CreateLeave createLeave;
 
-  LeaveCubit({required this.getLeaves, required this.createLeave})
-    : super(LeaveInitial());
+  /// 🔥 User login (session)
+  /// Bisa dari AuthCubit / SessionCubit / injected user
+  final UserEntity user;
+
+  LeaveCubit({
+    required this.getLeaves,
+    required this.createLeave,
+    required this.user,
+  }) : super(LeaveInitial());
 
   // ===============================
   // FETCH LEAVE HISTORY
-  // (sementara aman, tapi backend belum ada GET)
   // ===============================
   Future<void> fetchLeaves() async {
     emit(LeaveLoading());
@@ -36,21 +43,21 @@ class LeaveCubit extends Cubit<LeaveState> {
     required DateTime endDate,
     required String reason,
     required int totalDays,
-    File? attachment, // 🔥 TAMBAH INI
+    File? attachment,
   }) async {
     emit(LeaveLoading());
 
     try {
       await createLeave(
+        employeeId: user.id, // ⬅️ INI INTI PERBAIKAN
         leaveType: leaveType,
         startDate: startDate,
         endDate: endDate,
         reason: reason,
         totalDays: totalDays,
-        attachment: attachment, // 🔥 TERUSKAN
+        attachment: attachment,
       );
 
-      // cukup success saja, jangan fetch history
       emit(LeaveSuccess());
     } catch (_) {
       emit(LeaveError('Gagal mengajukan cuti'));

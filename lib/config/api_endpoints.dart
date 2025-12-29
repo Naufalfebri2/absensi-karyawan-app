@@ -12,7 +12,7 @@ class ApiEndpoint {
   // ===============================
   // LEAVE (EMPLOYEE)
   // ===============================
-  static const String leaves = '/leave-request';
+  static const String leaves = '/leave-request/store';
 
   // ===============================
   // LEAVE (MANAGER / HR)

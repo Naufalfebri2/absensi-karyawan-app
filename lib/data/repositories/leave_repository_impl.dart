@@ -1,8 +1,9 @@
-import '../../domain/repositories/leave_repository.dart';
+import 'dart:io';
+
 import '../../domain/entities/leave_entity.dart';
+import '../../domain/repositories/leave_repository.dart';
 import '../datasources/remote/leave_remote.dart';
 import '../mappers/leave_mapper.dart';
-import 'dart:io';
 
 class LeaveRepositoryImpl implements LeaveRepository {
   final LeaveRemote remote;
@@ -23,6 +24,7 @@ class LeaveRepositoryImpl implements LeaveRepository {
 
   @override
   Future<void> createLeave({
+    required int employeeId, // ⬅️ DITAMBAHKAN (WAJIB BACKEND)
     required String leaveType,
     required DateTime startDate,
     required DateTime endDate,
@@ -31,6 +33,7 @@ class LeaveRepositoryImpl implements LeaveRepository {
     File? attachment,
   }) {
     return remote.createLeave(
+      employeeId: employeeId, // ⬅️ DITERUSKAN KE REMOTE
       leaveType: leaveType,
       startDate: startDate,
       endDate: endDate,

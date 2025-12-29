@@ -2,6 +2,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../core/services/device/local_storage_service.dart';
+import '../../../domain/entities/user_entity.dart';
+import '../../../data/mappers/user_mapper.dart';
 
 part 'auth_state.dart';
 
@@ -18,9 +20,14 @@ class AuthCubit extends Cubit<AuthState> {
 
     try {
       final token = await storage.getAccessToken();
-      final user = await storage.getUser();
+      final rawUser = await storage.getUser(); // Map<String, dynamic>?
 
-      if (token != null && token.isNotEmpty && user != null) {
+      if (token != null &&
+          token.isNotEmpty &&
+          rawUser != null &&
+          rawUser is Map<String, dynamic>) {
+        final user = UserMapper.fromJson(rawUser);
+
         emit(AuthAuthenticated(token: token, user: user));
       } else {
         emit(AuthUnauthenticated());
@@ -42,15 +49,23 @@ class AuthCubit extends Cubit<AuthState> {
   /// ===============================
   Future<void> setAuthenticated({
     required String token,
-    required dynamic user,
+    required Map<String, dynamic> user, // ⬅️ RAW JSON DARI API
   }) async {
     emit(AuthLoading());
 
     try {
+      final userEntity = UserMapper.fromJson(user);
+
+      // Simpan ke storage dalam bentuk JSON (Map)
       await storage.saveAccessToken(token);
       await storage.saveUser(user);
 
-      emit(AuthAuthenticated(token: token, user: user));
+      emit(
+        AuthAuthenticated(
+          token: token,
+          user: userEntity, // ⬅️ SELALU UserEntity DI STATE
+        ),
+      );
     } catch (_) {
       emit(AuthUnauthenticated());
     }

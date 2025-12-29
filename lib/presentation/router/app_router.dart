@@ -61,6 +61,34 @@ class AppRouter {
     }
   }
 
+  // ===============================
+  // PREMIUM FADE + SLIDE TRANSITION
+  // ===============================
+  static CustomTransitionPage<T> _fadeSlide<T>({
+    required GoRouterState state,
+    required Widget child,
+  }) {
+    return CustomTransitionPage<T>(
+      key: state.pageKey,
+      child: child,
+      transitionDuration: const Duration(milliseconds: 220),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        final slide =
+            Tween<Offset>(
+              begin: const Offset(0.04, 0),
+              end: Offset.zero,
+            ).animate(
+              CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+            );
+
+        return SlideTransition(
+          position: slide,
+          child: FadeTransition(opacity: animation, child: child),
+        );
+      },
+    );
+  }
+
   static GoRouter router(AuthCubit authCubit) {
     return GoRouter(
       initialLocation: '/login',
@@ -95,7 +123,9 @@ class AppRouter {
       },
 
       routes: [
-        // AUTH
+        // ===============================
+        // AUTH (NO TRANSITION)
+        // ===============================
         GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
 
         GoRoute(
@@ -129,36 +159,74 @@ class AppRouter {
           },
         ),
 
-        // HOME
-        GoRoute(path: '/home', builder: (_, __) => const HomePage()),
-
-        // Notification
+        // ===============================
+        // TAB ROUTES (FADE + SLIDE)
+        // ===============================
         GoRoute(
-          path: '/notifications',
-          name: 'notifications',
-          builder: (context, state) {
-            return const NotificationPage();
-          },
+          path: '/home',
+          pageBuilder: (context, state) =>
+              _fadeSlide(state: state, child: const HomePage()),
         ),
 
-        // CALENDAR
-        GoRoute(path: '/calendar', builder: (_, __) => const CalendarPage()),
+        GoRoute(
+          path: '/calendar',
+          pageBuilder: (context, state) =>
+              _fadeSlide(state: state, child: const CalendarPage()),
+        ),
 
-        // ATTENDANCE LIST
         GoRoute(
           path: '/attendance',
-          builder: (context, state) {
-            return BlocProvider(
-              create: (_) => AttendanceCubit(
-                repository: context.read(),
-                holidayService: context.read<HolidayService>(),
-              )..init(),
-              child: const AttendancePage(),
+          pageBuilder: (context, state) {
+            return _fadeSlide(
+              state: state,
+              child: BlocProvider(
+                create: (_) => AttendanceCubit(
+                  repository: context.read(),
+                  holidayService: context.read<HolidayService>(),
+                )..init(),
+                child: const AttendancePage(),
+              ),
             );
           },
         ),
 
-        // ✅ CHECK IN (FIX)
+        GoRoute(
+          path: '/leave',
+          pageBuilder: (context, state) {
+            final authState = context.read<AuthCubit>().state;
+
+            if (authState is! AuthAuthenticated) {
+              return _fadeSlide(state: state, child: const LoginPage());
+            }
+
+            return _fadeSlide(
+              state: state,
+              child: BlocProvider(
+                create: (_) => LeaveCubit(
+                  getLeaves: context.read(),
+                  createLeave: context.read(),
+                  user: authState.user, // ⬅️ INI KUNCI TERAKHIR
+                )..fetchLeaves(),
+                child: const LeaveHistoryPage(),
+              ),
+            );
+          },
+        ),
+
+        GoRoute(
+          path: '/profile',
+          pageBuilder: (context, state) =>
+              _fadeSlide(state: state, child: const ProfilePage()),
+        ),
+
+        // ===============================
+        // OTHER ROUTES (NO TRANSITION)
+        // ===============================
+        GoRoute(
+          path: '/notifications',
+          builder: (_, __) => const NotificationPage(),
+        ),
+
         GoRoute(
           path: '/attendance/checkin',
           builder: (context, state) {
@@ -172,13 +240,11 @@ class AppRouter {
                 getTodayAttendance: context.read<GetTodayAttendance>(),
                 attendanceRepository: context.read(),
               ),
-
               child: const CheckInPage(),
             );
           },
         ),
 
-        // ✅ CHECK OUT
         GoRoute(
           path: '/attendance/checkout',
           builder: (context, state) {
@@ -191,22 +257,7 @@ class AppRouter {
                 locationService: context.read<LocationService>(),
                 attendanceRepository: context.read(),
               ),
-
               child: const CheckOutPage(),
-            );
-          },
-        ),
-
-        // LEAVE
-        GoRoute(
-          path: '/leave',
-          builder: (context, state) {
-            return BlocProvider(
-              create: (_) => LeaveCubit(
-                getLeaves: context.read(),
-                createLeave: context.read(),
-              )..fetchLeaves(),
-              child: const LeaveHistoryPage(),
             );
           },
         ),
@@ -224,9 +275,6 @@ class AppRouter {
             );
           },
         ),
-
-        // PROFILE
-        GoRoute(path: '/profile', builder: (_, __) => const ProfilePage()),
       ],
     );
   }

@@ -6,20 +6,100 @@ import '../../../core/utils/holiday_utils.dart';
 
 class CalendarCubit extends Cubit<CalendarState> {
   CalendarCubit() : super(CalendarState.initial()) {
-    loadDate(DateTime.now());
+    _init();
   }
 
   // ===============================
-  // CHANGE MONTH
+  // INIT
   // ===============================
-  void changeMonth(DateTime month) {
-    emit(state.copyWith(focusedMonth: month));
+  void _init() {
+    final now = DateTime.now();
+
+    emit(
+      state.copyWith(
+        selectedDate: now,
+        focusedMonth: DateTime(now.year, now.month),
+        selectedYear: now.year,
+        selectedMonth: now.month,
+        availableYears: _generateYears(),
+      ),
+    );
+
+    loadDate(now);
   }
 
   // ===============================
-  // SELECT DATE
+  // GENERATE YEAR LIST (1990 - CURRENT)
+  // ===============================
+  List<int> _generateYears() {
+    final currentYear = DateTime.now().year;
+    return List.generate(currentYear - 1990 + 1, (i) => 1990 + i);
+  }
+
+  // ===============================
+  // CHANGE MONTH (DROPDOWN / ARROW)
+  // ===============================
+  void changeMonth(int month) {
+    final newDate = DateTime(state.selectedYear, month);
+
+    emit(state.copyWith(selectedMonth: month, focusedMonth: newDate));
+
+    loadDate(newDate);
+  }
+
+  // ===============================
+  // CHANGE YEAR (DROPDOWN / ARROW)
+  // ===============================
+  void changeYear(int year) {
+    if (!state.availableYears.contains(year)) return;
+
+    final newDate = DateTime(year, state.selectedMonth);
+
+    emit(state.copyWith(selectedYear: year, focusedMonth: newDate));
+
+    loadDate(newDate);
+  }
+
+  // ===============================
+  // SELECT DATE (CLICK DAY)
   // ===============================
   void selectDate(DateTime date) {
+    emit(
+      state.copyWith(
+        selectedDate: date,
+        selectedYear: date.year,
+        selectedMonth: date.month,
+        focusedMonth: DateTime(date.year, date.month),
+      ),
+    );
+
+    loadDate(date);
+  }
+
+  // ===============================
+  // NEXT / PREVIOUS MONTH
+  // ===============================
+  void nextMonth() {
+    final next = DateTime(state.selectedYear, state.selectedMonth + 1);
+    _syncMonthYear(next);
+  }
+
+  void previousMonth() {
+    final prev = DateTime(state.selectedYear, state.selectedMonth - 1);
+    _syncMonthYear(prev);
+  }
+
+  void _syncMonthYear(DateTime date) {
+    if (!state.availableYears.contains(date.year)) return;
+
+    emit(
+      state.copyWith(
+        selectedYear: date.year,
+        selectedMonth: date.month,
+        focusedMonth: DateTime(date.year, date.month),
+      ),
+    );
+
     loadDate(date);
   }
 
@@ -27,9 +107,8 @@ class CalendarCubit extends Cubit<CalendarState> {
   // LOAD DATE (HOLIDAY + EVENTS)
   // ===============================
   Future<void> loadDate(DateTime date) async {
-    emit(state.copyWith(selectedDate: date, loading: true));
+    emit(state.copyWith(loading: true));
 
-    // 🔥 HOLIDAY LOGIC (ONCE)
     final isHoliday = HolidayUtils.isHoliday(date, HolidayLocal.holidays);
 
     final holidayName = HolidayUtils.getHolidayName(
@@ -42,7 +121,8 @@ class CalendarCubit extends Cubit<CalendarState> {
 
     emit(
       state.copyWith(
-        events: [
+        selectedDate: date,
+        events: const [
           CalendarEvent(
             title: "Mici’s Sick Leave",
             subtitle: "Not feeling well.",
@@ -54,9 +134,9 @@ class CalendarCubit extends Cubit<CalendarState> {
             avatarUrl: "https://i.pravatar.cc/150?img=12",
           ),
         ],
-        loading: false,
         isHoliday: isHoliday,
         holidayName: holidayName,
+        loading: false,
       ),
     );
   }

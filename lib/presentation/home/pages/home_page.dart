@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../bloc/home_cubit.dart';
 import '../bloc/home_state.dart';
 
+import '../widgets/animated_clock.dart';
+
 import '../../attendance/bloc/attendance_cubit.dart';
 import '../../notifications/bloc/notification_cubit.dart';
 import '../../notifications/bloc/notification_state.dart';
@@ -17,25 +19,41 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int selectedIndex = 0;
+  // ===============================
+  // ROUTE-BASED CURRENT INDEX
+  // ===============================
+  int _currentIndex(BuildContext context) {
+    final location = GoRouterState.of(context).uri.toString();
 
-  void onNavTap(int index) {
-    if (index == selectedIndex) return;
+    if (location.startsWith('/home')) return 0;
+    if (location.startsWith('/calendar')) return 1;
+    if (location.startsWith('/attendance')) return 2;
+    if (location.startsWith('/leave')) return 3;
+    if (location.startsWith('/profile')) return 4;
 
-    setState(() => selectedIndex = index);
+    return 0;
+  }
+
+  void _onNavTap(BuildContext context, int index) {
+    if (_currentIndex(context) == index) return;
+
+    final router = GoRouter.of(context);
 
     switch (index) {
+      case 0:
+        router.go('/home');
+        break;
       case 1:
-        context.push('/calendar');
+        router.go('/calendar');
         break;
       case 2:
-        context.push('/attendance');
+        router.go('/attendance');
         break;
       case 3:
-        context.push('/leave');
+        router.go('/leave');
         break;
       case 4:
-        context.push('/profile');
+        router.go('/profile');
         break;
     }
   }
@@ -49,6 +67,12 @@ class _HomePageState extends State<HomePage> {
     // LOAD NOTIFICATION BADGE
     // ===============================
     context.read<NotificationCubit>().loadNotifications();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    context.read<HomeCubit>().ensureAutoRefresh();
   }
 
   @override
@@ -66,7 +90,7 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           children: [
             // ===============================
-            // HEADER
+            // HEADER (TETAP, TIDAK DIUBAH)
             // ===============================
             Container(
               height: 56,
@@ -145,7 +169,7 @@ class _HomePageState extends State<HomePage> {
             ),
 
             // ===============================
-            // CONTENT
+            // CONTENT (TETAP UTUH)
             // ===============================
             Expanded(
               child: BlocBuilder<HomeCubit, HomeState>(
@@ -155,22 +179,14 @@ class _HomePageState extends State<HomePage> {
                   }
 
                   final now = state.now;
-
                   final isCheckedIn = state.hasCheckedIn;
                   final isCheckedOut = state.hasCheckedOut;
-
                   final canCheckIn = state.canCheckIn;
                   final canCheckOut = state.canCheckOut;
-
                   final restrictionMessage = state.restrictionMessage;
                   final distanceFromOffice = state.distanceFromOffice;
 
                   final buttonEnabled = !isCheckedIn ? canCheckIn : canCheckOut;
-
-                  final timeText =
-                      '${now.hour.toString().padLeft(2, '0')}:'
-                      '${now.minute.toString().padLeft(2, '0')}:'
-                      '${now.second.toString().padLeft(2, '0')}';
 
                   final dateText =
                       '${_weekday(now.weekday)}, '
@@ -198,12 +214,13 @@ class _HomePageState extends State<HomePage> {
                               ),
                             ),
                             const SizedBox(height: 8),
-                            Text(
-                              '$timeText WIB',
+                            AnimatedClock(
+                              now: now,
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 36,
                                 fontWeight: FontWeight.bold,
+                                letterSpacing: 1.5,
                               ),
                             ),
 
@@ -333,15 +350,16 @@ class _HomePageState extends State<HomePage> {
       ),
 
       // ===============================
-      // BOTTOM NAV
+      // BOTTOM NAV (FIXED)
       // ===============================
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: selectedIndex,
-        onTap: onNavTap,
+        currentIndex: _currentIndex(context),
+        onTap: (index) => _onNavTap(context, index),
         selectedItemColor: Colors.white,
         unselectedItemColor: Colors.white70,
         backgroundColor: brown,
         type: BottomNavigationBarType.fixed,
+        showUnselectedLabels: true,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(

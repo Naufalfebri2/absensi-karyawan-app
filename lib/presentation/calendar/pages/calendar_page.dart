@@ -20,9 +20,9 @@ class CalendarPage extends StatefulWidget {
 
 class _CalendarPageState extends State<CalendarPage> {
   // ===============================
-  // GET ACTIVE TAB FROM ROUTE
+  // ROUTE-BASED CURRENT INDEX
   // ===============================
-  int _getIndexFromLocation(BuildContext context) {
+  int _currentIndex(BuildContext context) {
     final location = GoRouterState.of(context).uri.toString();
 
     if (location.startsWith('/home')) return 0;
@@ -35,24 +35,28 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 
   // ===============================
-  // NAVIGATION HANDLER
+  // NAV HANDLER (FIXED)
   // ===============================
-  void onNavTap(int index) {
+  void _onNavTap(BuildContext context, int index) {
+    if (_currentIndex(context) == index) return;
+
+    final router = GoRouter.of(context);
+
     switch (index) {
       case 0:
-        context.go('/home');
+        router.go('/home');
         break;
       case 1:
-        context.go('/calendar');
+        router.go('/calendar');
         break;
       case 2:
-        context.go('/attendance');
+        router.go('/attendance');
         break;
       case 3:
-        context.go('/leave');
+        router.go('/leave');
         break;
       case 4:
-        context.go('/profile');
+        router.go('/profile');
         break;
     }
   }
@@ -62,6 +66,8 @@ class _CalendarPageState extends State<CalendarPage> {
     return BlocProvider(
       create: (_) => CalendarCubit(),
       child: Scaffold(
+        backgroundColor: Colors.white,
+
         body: SafeArea(
           child: Column(
             children: const [
@@ -75,7 +81,7 @@ class _CalendarPageState extends State<CalendarPage> {
         ),
 
         // ===============================
-        // BOTTOM NAVIGATION
+        // BOTTOM NAV (FIXED & SYNC)
         // ===============================
         bottomNavigationBar: Container(
           decoration: const BoxDecoration(
@@ -94,8 +100,8 @@ class _CalendarPageState extends State<CalendarPage> {
               }
 
               return BottomNavigationBar(
-                currentIndex: _getIndexFromLocation(context),
-                onTap: onNavTap,
+                currentIndex: _currentIndex(context),
+                onTap: (index) => _onNavTap(context, index),
                 backgroundColor: Colors.transparent,
                 elevation: 0,
                 selectedItemColor: Colors.white,
@@ -155,7 +161,7 @@ class _CalendarPageState extends State<CalendarPage> {
 }
 
 // =======================================================
-// EVENT LIST
+// EVENT LIST (TIDAK DIUBAH)
 // =======================================================
 class CalendarEventList extends StatelessWidget {
   const CalendarEventList({super.key});
@@ -171,9 +177,6 @@ class CalendarEventList extends StatelessWidget {
         return ListView(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           children: [
-            // ===============================
-            // DATE HEADER
-            // ===============================
             Text(
               "${_weekday(state.selectedDate)}, "
               "${state.selectedDate.day} "
@@ -184,9 +187,6 @@ class CalendarEventList extends StatelessWidget {
 
             const SizedBox(height: 6),
 
-            // ===============================
-            // HOLIDAY INDICATOR (FIXED)
-            // ===============================
             if (state.isHoliday)
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -219,9 +219,6 @@ class CalendarEventList extends StatelessWidget {
 
             if (state.isHoliday) const SizedBox(height: 12),
 
-            // ===============================
-            // EVENT LIST
-            // ===============================
             if (state.events.isEmpty)
               const Padding(
                 padding: EdgeInsets.only(top: 24),
