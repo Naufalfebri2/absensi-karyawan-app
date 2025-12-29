@@ -69,9 +69,10 @@ class AttendanceCubit extends Cubit<AttendanceState> {
   Future<void> loadTodayAttendance() async {
     try {
       final today = await repository.getTodayAttendance();
+      print(today);
       emit(state.copyWith(todayAttendance: today));
-    } catch (_) {
-      // optional
+    } catch (e) {
+      // print("error of : ${e}");
     }
   }
 

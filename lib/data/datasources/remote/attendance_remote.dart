@@ -15,7 +15,7 @@ class AttendanceRemote {
     required int month,
   }) async {
     final response = await dio.get(
-      '/attendance',
+      '/attendance/daily',
       queryParameters: {'year': year, 'month': month},
       options: Options(headers: {'Accept': 'application/json'}),
     );
@@ -36,16 +36,17 @@ class AttendanceRemote {
   Future<AttendanceEntity?> getTodayAttendance() async {
     try {
       final response = await dio.get(
-        '/attendance/today',
+        '/attendance/history/',
         options: Options(headers: {'Accept': 'application/json'}),
       );
-
+      print(response.data);
       final data = response.data['data'];
       if (data == null) return null;
 
       return AttendanceEntity.fromJson(Map<String, dynamic>.from(data));
     } on DioException catch (e) {
       // 404 = belum ada presensi hari ini
+      // print(e);
       if (e.response?.statusCode == 404) {
         return null;
       }
@@ -117,8 +118,6 @@ class AttendanceRemote {
         },
       ),
     );
-
-    
 
     return AttendanceEntity.fromJson(
       Map<String, dynamic>.from(response.data['data']),

@@ -20,7 +20,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
   }
 
   @override
-  Future<AttendanceEntity?> getTodayAttendance() {
+  Future<AttendanceEntity?> getTodayAttendance() async {
     return remoteDataSource.getTodayAttendance();
   }
 

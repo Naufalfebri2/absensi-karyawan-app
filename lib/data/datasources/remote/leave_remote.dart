@@ -21,6 +21,7 @@ class LeaveRemote {
       );
 
       final data = response.data;
+      print(data);
 
       // ✅ Aman untuk berbagai bentuk response
       if (data is Map && data['data'] is List) {

@@ -4,27 +4,22 @@ class AttendanceEntity {
   final DateTime date;
 
   /// STATUS UTAMA (BACKWARD COMPATIBLE)
-  /// Dipakai UI lama (misalnya list singkat)
   final AttendanceStatus status;
 
   /// ===============================
   /// CHECK IN
   /// ===============================
-  /// Format: HH:mm (24 jam)
+  /// Format: HH:mm
   final String? checkInTime;
   final AttendanceStatus? checkInStatus;
-
-  /// 🔥 BARU
   final String? checkInSelfiePath;
 
   /// ===============================
   /// CHECK OUT
   /// ===============================
-  /// Format: HH:mm (24 jam)
+  /// Format: HH:mm
   final String? checkOutTime;
   final AttendanceStatus? checkOutStatus;
-
-  /// 🔥 BARU
   final String? checkOutSelfiePath;
 
   AttendanceEntity({
@@ -39,7 +34,7 @@ class AttendanceEntity {
   });
 
   // ===============================
-  // COPY WITH 🔥
+  // COPY WITH
   // ===============================
   AttendanceEntity copyWith({
     DateTime? date,
@@ -64,45 +59,39 @@ class AttendanceEntity {
   }
 
   // ===============================
-  // JSON → ENTITY
+  // API → ENTITY (FIXED)
   // ===============================
   factory AttendanceEntity.fromJson(Map<String, dynamic> json) {
     return AttendanceEntity(
-      date: DateTime.parse(json['date']),
+      date: DateTime.now(), // API belum kirim tanggal
       status: _parseStatus(json['status']),
-      checkInTime: json['check_in_time'],
-      checkOutTime: json['check_out_time'],
-      checkInStatus: json['check_in_status'] != null
-          ? _parseStatus(json['check_in_status'])
-          : null,
-      checkOutStatus: json['check_out_status'] != null
-          ? _parseStatus(json['check_out_status'])
-          : null,
-      checkInSelfiePath: json['check_in_selfie'],
-      checkOutSelfiePath: json['check_out_selfie'],
+      checkInTime: _formatTime(json['time_checkin']),
+      checkOutTime: _formatTime(json['time_checkout']),
+      checkInSelfiePath: json['photo_in'],
+      checkOutSelfiePath: json['photo_out'],
     );
   }
 
   // ===============================
-  // ENTITY → JSON (SIAP BACKEND)
+  // ENTITY → JSON
   // ===============================
   Map<String, dynamic> toJson() {
     return {
       'date': date.toIso8601String(),
       'status': status.name,
-      'check_in_time': checkInTime,
-      'check_out_time': checkOutTime,
-      'check_in_status': checkInStatus?.name,
-      'check_out_status': checkOutStatus?.name,
-      'check_in_selfie': checkInSelfiePath,
-      'check_out_selfie': checkOutSelfiePath,
+      'time_checkin': checkInTime,
+      'time_checkout': checkOutTime,
+      'photo_in': checkInSelfiePath,
+      'photo_out': checkOutSelfiePath,
     };
   }
 
   // ===============================
-  // PARSE STATUS
+  // PARSE STATUS (FIXED)
   // ===============================
-  static AttendanceStatus _parseStatus(String value) {
+  static AttendanceStatus _parseStatus(String? value) {
+    if (value == null) return AttendanceStatus.onTime;
+
     switch (value.toLowerCase()) {
       case 'on_time':
       case 'ontime':
@@ -115,11 +104,20 @@ class AttendanceEntity {
         return AttendanceStatus.holiday;
       case 'early_leave':
         return AttendanceStatus.earlyLeave;
+      case 'lembur':
       case 'overtime':
         return AttendanceStatus.overtime;
       default:
         return AttendanceStatus.onTime;
     }
+  }
+
+  // ===============================
+  // FORMAT JAM HH:mm:ss → HH:mm
+  // ===============================
+  static String? _formatTime(String? time) {
+    if (time == null || time.isEmpty) return null;
+    return time.length >= 5 ? time.substring(0, 5) : time;
   }
 
   // ===============================
@@ -136,18 +134,14 @@ class AttendanceEntity {
   // LOGIC HELPERS
   // ===============================
   bool get hasCheckIn => checkInTime != null && checkInTime!.isNotEmpty;
-
   bool get hasCheckOut => checkOutTime != null && checkOutTime!.isNotEmpty;
-
   bool get hasCheckInSelfie =>
       checkInSelfiePath != null && checkInSelfiePath!.isNotEmpty;
-
   bool get hasCheckOutSelfie =>
       checkOutSelfiePath != null && checkOutSelfiePath!.isNotEmpty;
 
   DateTime? _parseTime(String? time) {
     if (time == null || time.isEmpty) return null;
-
     final parts = time.split(':');
     if (parts.length < 2) return null;
 
