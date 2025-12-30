@@ -37,6 +37,7 @@ class ProfileCubit extends Cubit<ProfileState> {
   Future<void> updateProfile({
     required String name,
     required String email,
+    required String phoneNumber, // ✅ TAMBAH
     required String position,
     required String department,
   }) async {
@@ -56,16 +57,19 @@ class ProfileCubit extends Cubit<ProfileState> {
         userId: currentUser.id,
         name: name,
         email: email,
+        phoneNumber: phoneNumber, // ✅ KIRIM KE USECASE
         position: position,
         department: department,
       );
 
+      // 🔥 UPDATE GLOBAL AUTH STATE
       await authCubit.setAuthenticated(
         token: authState.token,
         user: {
           'id': updatedUser.id,
           'name': updatedUser.name,
           'email': updatedUser.email,
+          'phone_number': updatedUser.phoneNumber, // ✅ SIMPAN
           'position': updatedUser.position,
           'department': updatedUser.department,
           'avatar_url': currentUser.avatarUrl, // tetap
@@ -108,6 +112,7 @@ class ProfileCubit extends Cubit<ProfileState> {
           'id': currentUser.id,
           'name': currentUser.name,
           'email': currentUser.email,
+          'phone_number': currentUser.phoneNumber, // ✅ TETAP
           'position': currentUser.position,
           'department': currentUser.department,
           'avatar_url': avatarUrl,

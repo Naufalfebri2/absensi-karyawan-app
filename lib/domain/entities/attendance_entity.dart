@@ -92,21 +92,52 @@ class AttendanceEntity {
   static AttendanceStatus _parseStatus(String? value) {
     if (value == null) return AttendanceStatus.onTime;
 
-    switch (value.toLowerCase()) {
+    final normalized = value.toLowerCase().trim();
+
+    switch (normalized) {
+      // ===============================
+      // ON TIME
+      // ===============================
       case 'on_time':
       case 'ontime':
+      case 'tepat waktu':
         return AttendanceStatus.onTime;
+
+      // ===============================
+      // LATE
+      // ===============================
       case 'late':
+      case 'terlambat':
         return AttendanceStatus.late;
+
+      // ===============================
+      // LEAVE
+      // ===============================
       case 'leave':
+      case 'cuti':
         return AttendanceStatus.leave;
+
+      // ===============================
+      // HOLIDAY
+      // ===============================
       case 'holiday':
+      case 'libur':
         return AttendanceStatus.holiday;
+
+      // ===============================
+      // EARLY LEAVE
+      // ===============================
       case 'early_leave':
+      case 'pulang cepat':
         return AttendanceStatus.earlyLeave;
+
+      // ===============================
+      // OVERTIME
+      // ===============================
       case 'lembur':
       case 'overtime':
         return AttendanceStatus.overtime;
+
       default:
         return AttendanceStatus.onTime;
     }

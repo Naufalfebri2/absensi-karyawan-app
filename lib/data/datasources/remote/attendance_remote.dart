@@ -13,10 +13,15 @@ class AttendanceRemote {
   Future<List<AttendanceEntity>> getAttendanceHistory({
     required int year,
     required int month,
+    int? employeeId,
   }) async {
     final response = await dio.get(
       '/attendance/daily',
-      queryParameters: {'year': year, 'month': month},
+      queryParameters: {
+        'year': year,
+        'month': month,
+        if (employeeId != null) 'employee_id': employeeId,
+      },
       options: Options(headers: {'Accept': 'application/json'}),
     );
 
@@ -33,20 +38,19 @@ class AttendanceRemote {
   // ===============================
   // TODAY ATTENDANCE
   // ===============================
-  Future<AttendanceEntity?> getTodayAttendance() async {
+  Future<AttendanceEntity?> getTodayAttendance({int? employeeId}) async {
     try {
       final response = await dio.get(
         '/attendance/history/',
+        queryParameters: {if (employeeId != null) 'employee_id': employeeId},
         options: Options(headers: {'Accept': 'application/json'}),
       );
-      print(response.data);
+
       final data = response.data['data'];
       if (data == null) return null;
 
       return AttendanceEntity.fromJson(Map<String, dynamic>.from(data));
     } on DioException catch (e) {
-      // 404 = belum ada presensi hari ini
-      // print(e);
       if (e.response?.statusCode == 404) {
         return null;
       }
@@ -55,7 +59,7 @@ class AttendanceRemote {
   }
 
   // ===============================
-  // 🔥 SAVE CHECK IN (API BARU)
+  // SAVE CHECK IN
   // ===============================
   Future<AttendanceActionEntity> saveCheckIn({
     required DateTime time,
@@ -63,12 +67,14 @@ class AttendanceRemote {
     required String selfiePath,
     double? latitude,
     double? longitude,
+    int? employeeId,
   }) async {
     final formData = FormData.fromMap({
       'time': _formatTime(time),
       'latitude': latitude,
       'longitude': longitude,
       'flag': 'check-in',
+      if (employeeId != null) 'employee_id': employeeId,
       'photo': await MultipartFile.fromFile(
         selfiePath,
         filename: selfiePath.split('/').last,
@@ -92,16 +98,18 @@ class AttendanceRemote {
   }
 
   // ===============================
-  // 🔥 SAVE CHECK OUT (API BARU)
+  // SAVE CHECK OUT
   // ===============================
   Future<AttendanceEntity> saveCheckOut({
     required DateTime time,
     required AttendanceStatus status,
     required String selfiePath,
+    int? employeeId,
   }) async {
     final formData = FormData.fromMap({
       'time': _formatTime(time),
       'flag': 'check-out',
+      if (employeeId != null) 'employee_id': employeeId,
       'photo': await MultipartFile.fromFile(
         selfiePath,
         filename: selfiePath.split('/').last,
@@ -125,36 +133,34 @@ class AttendanceRemote {
   }
 
   // ===============================
-  // LEGACY (JANGAN DIHAPUS)
+  // LEGACY SUPPORT (DO NOT REMOVE)
   // ===============================
   Future<AttendanceEntity> checkIn({
     required double latitude,
     required double longitude,
     required String photoPath,
   }) async {
-    final response = await dio.post(
-      '/attendance/checkin',
-      data: {
-        'latitude': latitude,
-        'longitude': longitude,
-        'photoPath': photoPath,
-      },
-      options: Options(headers: {'Accept': 'application/json'}),
+    final action = await saveCheckIn(
+      time: DateTime.now(),
+      status: AttendanceStatus.onTime,
+      selfiePath: photoPath,
+      latitude: latitude,
+      longitude: longitude,
     );
 
-    return AttendanceEntity.fromJson(
-      Map<String, dynamic>.from(response.data['data']),
+    return AttendanceEntity(
+      date: DateTime.now(),
+      checkInTime: action.time,
+      checkOutTime: null,
+      status: AttendanceStatus.onTime,
     );
   }
 
   Future<AttendanceEntity> checkOut() async {
-    final response = await dio.post(
-      '/attendance/checkout',
-      options: Options(headers: {'Accept': 'application/json'}),
-    );
-
-    return AttendanceEntity.fromJson(
-      Map<String, dynamic>.from(response.data['data']),
+    return saveCheckOut(
+      time: DateTime.now(),
+      status: AttendanceStatus.earlyLeave,
+      selfiePath: '',
     );
   }
 

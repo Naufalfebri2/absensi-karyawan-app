@@ -1,17 +1,25 @@
 import 'package:absensi_karyawan_app/domain/entities/attendance_action_entity.dart';
-
 import '../entities/attendance_entity.dart';
 
 abstract class AttendanceRepository {
   // ===============================
   // READ
   // ===============================
+
+  /// Riwayat absensi per bulan
   Future<List<AttendanceEntity>> getAttendanceHistory({
     required int year,
     required int month,
+
+    // 🔥 OPTIONAL: untuk admin / manager
+    int? employeeId,
   });
 
-  Future<AttendanceEntity?> getTodayAttendance();
+  /// Absensi hari ini
+  Future<AttendanceEntity?> getTodayAttendance({
+    // 🔥 OPTIONAL
+    int? employeeId,
+  });
 
   // ===============================
   // LEGACY (BACKWARD COMPATIBLE)
@@ -36,6 +44,9 @@ abstract class AttendanceRepository {
     required String selfiePath,
     double? latitude,
     double? longitude,
+
+    // 🔥 OPTIONAL
+    int? employeeId,
   });
 
   /// Simpan Check-Out lengkap (selfie + status)
@@ -43,5 +54,8 @@ abstract class AttendanceRepository {
     required DateTime time,
     required AttendanceStatus status,
     required String selfiePath,
+
+    // 🔥 OPTIONAL
+    int? employeeId,
   });
 }

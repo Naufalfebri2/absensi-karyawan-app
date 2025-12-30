@@ -15,13 +15,22 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
   Future<List<AttendanceEntity>> getAttendanceHistory({
     required int year,
     required int month,
+
+    // 🔥 OPTIONAL
+    int? employeeId,
   }) {
-    return remoteDataSource.getAttendanceHistory(year: year, month: month);
+    return remoteDataSource.getAttendanceHistory(
+      year: year,
+      month: month,
+      employeeId: employeeId,
+    );
   }
 
   @override
-  Future<AttendanceEntity?> getTodayAttendance() async {
-    return remoteDataSource.getTodayAttendance();
+  Future<AttendanceEntity?> getTodayAttendance({
+    int? employeeId, // 🔥 OPTIONAL
+  }) async {
+    return remoteDataSource.getTodayAttendance(employeeId: employeeId);
   }
 
   // ===============================
@@ -56,6 +65,9 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     required String selfiePath,
     double? latitude,
     double? longitude,
+
+    // 🔥 OPTIONAL
+    int? employeeId,
   }) {
     return remoteDataSource.saveCheckIn(
       time: time,
@@ -63,6 +75,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       selfiePath: selfiePath,
       latitude: latitude,
       longitude: longitude,
+      employeeId: employeeId,
     );
   }
 
@@ -71,11 +84,15 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     required DateTime time,
     required AttendanceStatus status,
     required String selfiePath,
+
+    // 🔥 OPTIONAL
+    int? employeeId,
   }) {
     return remoteDataSource.saveCheckOut(
       time: time,
       status: status,
       selfiePath: selfiePath,
+      employeeId: employeeId,
     );
   }
 }
