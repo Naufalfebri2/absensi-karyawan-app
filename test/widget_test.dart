@@ -15,6 +15,7 @@ import 'package:absensi_karyawan_app/data/datasources/remote/auth_remote.dart';
 import 'package:absensi_karyawan_app/data/datasources/remote/leave_remote.dart';
 import 'package:absensi_karyawan_app/data/datasources/remote/attendance_remote.dart';
 import 'package:absensi_karyawan_app/data/datasources/remote/notification_remote.dart';
+import 'package:absensi_karyawan_app/data/datasources/remote/profile_remote.dart';
 
 // ===============================
 // DOMAIN USECASES
@@ -55,6 +56,11 @@ void main() {
     final leaveRepository = LeaveRepositoryImpl(LeaveRemote(dio));
 
     // ===============================
+    // PROFILE 🔥 (WAJIB UNTUK TEST)
+    // ===============================
+    final profileRemote = ProfileRemote(dio);
+
+    // ===============================
     // ATTENDANCE
     // ===============================
     final attendanceRepository = AttendanceRepositoryImpl(
@@ -91,6 +97,7 @@ void main() {
         authRepository: authRepository,
         leaveRepository: leaveRepository,
         attendanceRepository: attendanceRepository,
+        profileRemote: profileRemote,
         holidayService: holidayService,
         locationService: locationService,
         authCubit: authCubit,

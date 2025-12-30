@@ -20,7 +20,7 @@ class AuthCubit extends Cubit<AuthState> {
 
     try {
       final token = await storage.getAccessToken();
-      final rawUser = await storage.getUser(); // Map<String, dynamic>?
+      final rawUser = await storage.getUser();
 
       if (token != null &&
           token.isNotEmpty &&
@@ -38,34 +38,40 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   /// ===============================
-  /// OTP REQUIRED (SEBELUM LOGIN)
+  /// OTP REQUIRED
   /// ===============================
   void requireOtp({required String email}) {
     emit(AuthOtpRequired(email: email));
   }
 
   /// ===============================
-  /// SET AUTH AFTER OTP SUCCESS
+  /// SET AUTH AFTER LOGIN / UPDATE
   /// ===============================
   Future<void> setAuthenticated({
     required String token,
-    required Map<String, dynamic> user, // ⬅️ RAW JSON DARI API
+    required Map<String, dynamic> user,
   }) async {
     emit(AuthLoading());
 
     try {
-      final userEntity = UserMapper.fromJson(user);
+      // 🔥 NORMALISASI USER MAP (INJECT PHONE)
+      final normalizedUser = {
+        ...user,
+        'phone_number':
+            user['phone_number'] ??
+            user['phone'] ??
+            user['mobile'] ??
+            user['no_hp'] ??
+            user['telp'],
+      };
 
-      // Simpan ke storage dalam bentuk JSON (Map)
+      final userEntity = UserMapper.fromJson(normalizedUser);
+
+      // 🔥 SIMPAN KE STORAGE (SUDAH KONSISTEN)
       await storage.saveAccessToken(token);
-      await storage.saveUser(user);
+      await storage.saveUser(normalizedUser);
 
-      emit(
-        AuthAuthenticated(
-          token: token,
-          user: userEntity, // ⬅️ SELALU UserEntity DI STATE
-        ),
-      );
+      emit(AuthAuthenticated(token: token, user: userEntity));
     } catch (_) {
       emit(AuthUnauthenticated());
     }

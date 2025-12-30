@@ -10,6 +10,22 @@ class UserMapper {
           json['position'] ?? json['position_name'] ?? json['jabatan'] ?? '',
       department:
           json['department'] ?? json['department_name'] ?? json['divisi'] ?? '',
+
+      // 🔥 PHONE NUMBER (STRING)
+      phoneNumber:
+          json['phone'] ??
+          json['phone_number'] ??
+          json['mobile'] ??
+          json['no_hp'] ??
+          json['telp'] ??
+          '',
+
+      // 🔥 AVATAR
+      avatarUrl:
+          json['avatar_url'] ??
+          json['avatar'] ??
+          json['photo'] ??
+          json['profile_photo_url'],
     );
   }
 
@@ -20,6 +36,12 @@ class UserMapper {
       'email': user.email,
       'position': user.position,
       'department': user.department,
+
+      // 🔥 PHONE NUMBER
+      'phone_number': user.phoneNumber,
+
+      // 🔥 AVATAR
+      'avatar_url': user.avatarUrl,
     };
   }
 

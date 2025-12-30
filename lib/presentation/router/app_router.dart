@@ -215,8 +215,9 @@ class AppRouter {
 
         GoRoute(
           path: '/profile',
-          pageBuilder: (context, state) =>
-              _fadeSlide(state: state, child: const ProfilePage()),
+          pageBuilder: (context, state) {
+            return _fadeSlide(state: state, child: const ProfilePage());
+          },
         ),
 
         // ===============================

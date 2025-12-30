@@ -24,11 +24,22 @@ import 'presentation/home/bloc/home_cubit.dart';
 import 'presentation/notifications/bloc/notification_cubit.dart';
 
 // ===============================
+// PROFILE CUBIT
+// ===============================
+import 'presentation/profile/bloc/profile_cubit.dart';
+
+// ===============================
 // USECASES - AUTH
 // ===============================
 import 'domain/usecases/auth/login_user.dart';
 import 'domain/usecases/auth/otp_verify.dart';
 import 'domain/usecases/auth/reset_password.dart';
+
+// ===============================
+// USECASES - PROFILE
+// ===============================
+import 'domain/usecases/profile/update_profile.dart';
+import 'domain/usecases/profile/update_logo.dart';
 
 // ===============================
 // USECASES - LEAVE
@@ -45,7 +56,7 @@ import 'domain/usecases/leave/reject_leave.dart';
 import 'domain/usecases/attendance/get_today_attendance.dart';
 
 // ===============================
-// USECASES - NOTIFICATION 🔥
+// USECASES - NOTIFICATION
 // ===============================
 import 'domain/usecases/notification/get_notifications.dart';
 import 'domain/usecases/notification/mark_as_read.dart';
@@ -70,7 +81,13 @@ import 'data/datasources/remote/attendance_remote.dart';
 import 'domain/repositories/attendance_repository.dart';
 
 // ===============================
-// DATA - NOTIFICATION 🔥
+// DATA - PROFILE 🔥 (INI YANG KURANG)
+// ===============================
+import 'data/datasources/remote/profile_remote.dart';
+import 'data/repositories/profile_repository_impl.dart';
+
+// ===============================
+// DATA - NOTIFICATION
 // ===============================
 import 'data/datasources/remote/notification_remote.dart';
 import 'data/repositories/notification_repository_impl.dart';
@@ -119,7 +136,12 @@ void main() async {
   );
 
   // ===============================
-  // NOTIFICATION 🔥
+  // PROFILE 🔥
+  // ===============================
+  final profileRemote = ProfileRemote(dio);
+
+  // ===============================
+  // NOTIFICATION
   // ===============================
   final notificationRemote = NotificationRemoteDataSourceImpl();
   final notificationRepository = NotificationRepositoryImpl(
@@ -145,6 +167,7 @@ void main() async {
       authRepository: authRepository,
       leaveRepository: leaveRepository,
       attendanceRepository: attendanceRepository,
+      profileRemote: profileRemote,
       holidayService: holidayService,
       locationService: locationService,
       authCubit: authCubit,
@@ -158,11 +181,12 @@ class AbsensiApp extends StatelessWidget {
   final AuthRepositoryImpl authRepository;
   final LeaveRepositoryImpl leaveRepository;
   final AttendanceRepositoryImpl attendanceRepository;
+  final ProfileRemote profileRemote;
+
   final HolidayService holidayService;
   final LocationService locationService;
   final AuthCubit authCubit;
 
-  // 🔥 NOTIFICATION USECASES
   final GetNotifications getNotifications;
   final MarkAsRead markAsRead;
 
@@ -171,6 +195,7 @@ class AbsensiApp extends StatelessWidget {
     required this.authRepository,
     required this.leaveRepository,
     required this.attendanceRepository,
+    required this.profileRemote,
     required this.holidayService,
     required this.locationService,
     required this.authCubit,
@@ -191,6 +216,11 @@ class AbsensiApp extends StatelessWidget {
           value: attendanceRepository,
         ),
 
+        // 🔥 PROFILE REPOSITORY (WAJIB)
+        RepositoryProvider<ProfileRepositoryImpl>(
+          create: (_) => ProfileRepositoryImpl(profileRemote),
+        ),
+
         // ===============================
         // SERVICES
         // ===============================
@@ -204,6 +234,18 @@ class AbsensiApp extends StatelessWidget {
         RepositoryProvider<OtpVerify>(create: (_) => OtpVerify(authRepository)),
         RepositoryProvider<ResetPassword>(
           create: (_) => ResetPassword(authRepository),
+        ),
+
+        // ===============================
+        // PROFILE USECASES
+        // ===============================
+        RepositoryProvider<UpdateProfile>(
+          create: (context) =>
+              UpdateProfile(context.read<ProfileRepositoryImpl>()),
+        ),
+        RepositoryProvider<UpdateLogo>(
+          create: (context) =>
+              UpdateLogo(context.read<ProfileRepositoryImpl>()),
         ),
 
         // ===============================
@@ -233,21 +275,15 @@ class AbsensiApp extends StatelessWidget {
         ),
 
         // ===============================
-        // NOTIFICATION USECASES 🔥
+        // NOTIFICATION USECASES
         // ===============================
         RepositoryProvider<GetNotifications>.value(value: getNotifications),
         RepositoryProvider<MarkAsRead>.value(value: markAsRead),
       ],
       child: MultiBlocProvider(
         providers: [
-          // ===============================
-          // AUTH (GLOBAL)
-          // ===============================
           BlocProvider<AuthCubit>.value(value: authCubit..checkAuthStatus()),
 
-          // ===============================
-          // HOME (GLOBAL)
-          // ===============================
           BlocProvider<HomeCubit>(
             create: (context) => HomeCubit(
               holidayService: holidayService,
@@ -256,14 +292,19 @@ class AbsensiApp extends StatelessWidget {
             )..loadDashboard(),
           ),
 
-          // ===============================
-          // NOTIFICATION (GLOBAL 🔔🔥)
-          // ===============================
           BlocProvider<NotificationCubit>(
             create: (context) => NotificationCubit(
               getNotifications: context.read<GetNotifications>(),
               markAsRead: context.read<MarkAsRead>(),
             )..loadNotifications(),
+          ),
+
+          BlocProvider<ProfileCubit>(
+            create: (context) => ProfileCubit(
+              authCubit: authCubit,
+              updateProfileUsecase: context.read<UpdateProfile>(),
+              updateAvatarUsecase: context.read<UpdateLogo>(),
+            )..loadProfile(),
           ),
         ],
         child: MaterialApp.router(
