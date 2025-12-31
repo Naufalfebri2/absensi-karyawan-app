@@ -16,7 +16,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
       final models = await remoteDataSource.getNotifications();
       return NotificationMapper.toEntityList(models);
     } catch (e) {
-      throw const ServerFailure('Gagal memuat notifikasi');
+      throw const ServerFailure('Failed to load notifications');
     }
   }
 
@@ -25,7 +25,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
     try {
       await remoteDataSource.markAsRead(notificationId);
     } catch (e) {
-      throw const ServerFailure('Gagal memperbarui notifikasi');
+      throw const ServerFailure('Failed to update notification');
     }
   }
 }

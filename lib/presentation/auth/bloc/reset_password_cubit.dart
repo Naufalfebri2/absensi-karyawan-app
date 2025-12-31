@@ -24,10 +24,10 @@ class ResetPasswordCubit extends Cubit<ResetPasswordState> {
       if (res['success'] == true) {
         emit(ResetPasswordSuccess());
       } else {
-        emit(ResetPasswordError(res['message'] ?? 'Gagal reset password'));
+        emit(ResetPasswordError(res['message'] ?? 'Failed password reset'));
       }
     } catch (_) {
-      emit(const ResetPasswordError('Terjadi kesalahan, coba lagi'));
+      emit(const ResetPasswordError('There was a mistake, try again'));
     }
   }
 }

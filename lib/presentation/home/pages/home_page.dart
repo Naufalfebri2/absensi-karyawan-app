@@ -90,7 +90,7 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           children: [
             // ===============================
-            // HEADER (TETAP, TIDAK DIUBAH)
+            // HEADER
             // ===============================
             Container(
               height: 56,
@@ -169,7 +169,7 @@ class _HomePageState extends State<HomePage> {
             ),
 
             // ===============================
-            // CONTENT (TETAP UTUH)
+            // CONTENT
             // ===============================
             Expanded(
               child: BlocBuilder<HomeCubit, HomeState>(
@@ -227,7 +227,7 @@ class _HomePageState extends State<HomePage> {
                             if (distanceFromOffice != null) ...[
                               const SizedBox(height: 6),
                               Text(
-                                'Jarak ke kantor: '
+                                'Distance to office: '
                                 '${distanceFromOffice.toStringAsFixed(0)} m',
                                 style: const TextStyle(
                                   color: Colors.white70,
@@ -252,7 +252,7 @@ class _HomePageState extends State<HomePage> {
                             if (isCheckedOut) ...[
                               const SizedBox(height: 8),
                               const Text(
-                                'Anda sudah Check Out hari ini',
+                                'You have already checked out today',
                                 style: TextStyle(
                                   color: Colors.white70,
                                   fontSize: 12,
@@ -350,7 +350,7 @@ class _HomePageState extends State<HomePage> {
       ),
 
       // ===============================
-      // BOTTOM NAV (FIXED)
+      // BOTTOM NAV
       // ===============================
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex(context),

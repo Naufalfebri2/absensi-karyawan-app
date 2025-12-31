@@ -252,8 +252,8 @@ class _AttendanceView extends StatelessWidget {
                           padding: const EdgeInsets.only(bottom: 8),
                           child: Text(
                             state.selectedHolidayName != null
-                                ? "Libur Nasional - ${state.selectedHolidayName}"
-                                : "Tanggal: ${state.selectedDate!.day}/${state.selectedDate!.month}/${state.selectedDate!.year}",
+                                ? "National Holiday - ${state.selectedHolidayName}"
+                                : "Date: ${state.selectedDate!.day}/${state.selectedDate!.month}/${state.selectedDate!.year}",
                             style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w500,

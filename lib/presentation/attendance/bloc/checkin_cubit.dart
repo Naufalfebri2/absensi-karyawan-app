@@ -48,7 +48,7 @@ class CheckInCubit extends Cubit<CheckInState> {
       // 0️⃣ SELFIE VALIDATION (WAJIB)
       // ===============================
       if (!await selfieFile.exists()) {
-        emit(const CheckInFailure('Foto selfie tidak valid'));
+        emit(const CheckInFailure('Invalid selfie photo'));
         return;
       }
 
@@ -60,7 +60,7 @@ class CheckInCubit extends Cubit<CheckInState> {
       final todayAttendance = await _getTodayAttendance();
 
       if (todayAttendance != null && todayAttendance.hasCheckOut) {
-        emit(const CheckInFailure('Anda sudah melakukan Check Out hari ini'));
+        emit(const CheckInFailure('You have already checked out today'));
         return;
       }
 
@@ -79,7 +79,7 @@ class CheckInCubit extends Cubit<CheckInState> {
       if (distance > _office.radiusMeter) {
         emit(
           const CheckInFailure(
-            'Anda tidak berada di lokasi GPS yang ditentukan',
+            'You are not within the designated GPS location',
           ),
         );
         return;
@@ -107,7 +107,6 @@ class CheckInCubit extends Cubit<CheckInState> {
     } on LocationException catch (e) {
       emit(CheckInFailure(e.message));
     } catch (e) {
-
       emit(CheckInFailure(e.toString()));
     }
   }

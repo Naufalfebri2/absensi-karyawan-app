@@ -35,7 +35,9 @@ class LeaveRemote {
       // fallback aman
       return [];
     } on DioException catch (e) {
-      throw Exception(e.response?.data?['message'] ?? 'Gagal memuat data cuti');
+      throw Exception(
+        e.response?.data?['message'] ?? 'Failed to load leave data',
+      );
     }
   }
 
@@ -71,7 +73,9 @@ class LeaveRemote {
         options: Options(headers: {'Accept': 'application/json'}),
       );
     } on DioException catch (e) {
-      throw Exception(e.response?.data?['message'] ?? 'Gagal mengajukan cuti');
+      throw Exception(
+        e.response?.data?['message'] ?? 'Failed to submit leave request',
+      );
     }
   }
 
@@ -100,7 +104,7 @@ class LeaveRemote {
       return [];
     } on DioException catch (e) {
       throw Exception(
-        e.response?.data?['message'] ?? 'Gagal memuat cuti pending',
+        e.response?.data?['message'] ?? 'Failed to load pending leave requests',
       );
     }
   }
@@ -114,7 +118,9 @@ class LeaveRemote {
         options: Options(headers: {'Accept': 'application/json'}),
       );
     } on DioException catch (e) {
-      throw Exception(e.response?.data?['message'] ?? 'Gagal menyetujui cuti');
+      throw Exception(
+        e.response?.data?['message'] ?? 'Failed to approve leave request',
+      );
     }
   }
 
@@ -127,7 +133,9 @@ class LeaveRemote {
         options: Options(headers: {'Accept': 'application/json'}),
       );
     } on DioException catch (e) {
-      throw Exception(e.response?.data?['message'] ?? 'Gagal menolak cuti');
+      throw Exception(
+        e.response?.data?['message'] ?? 'Failed to reject leave request',
+      );
     }
   }
 

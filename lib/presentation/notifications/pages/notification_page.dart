@@ -23,7 +23,7 @@ class _NotificationPageState extends State<NotificationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Notifikasi'), centerTitle: true),
+      appBar: AppBar(title: const Text('Notifications'), centerTitle: true),
       body: BlocBuilder<NotificationCubit, NotificationState>(
         builder: (context, state) {
           // ===============================
@@ -51,7 +51,7 @@ class _NotificationPageState extends State<NotificationPage> {
                     onPressed: () {
                       context.read<NotificationCubit>().loadNotifications();
                     },
-                    child: const Text('Coba Lagi'),
+                    child: const Text('Try Again'),
                   ),
                 ],
               ),
@@ -115,7 +115,7 @@ class _EmptyNotification extends StatelessWidget {
           Icon(Icons.notifications_none, size: 64, color: Colors.grey),
           SizedBox(height: 12),
           Text(
-            'Belum ada notifikasi',
+            'No notifications yet',
             style: TextStyle(fontSize: 16, color: Colors.grey),
           ),
         ],

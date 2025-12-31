@@ -36,7 +36,7 @@ class NotificationCubit extends Cubit<NotificationState> {
     } catch (_) {
       emit(
         const NotificationError(
-          message: 'Terjadi kesalahan saat memuat notifikasi',
+          message: 'An error occurred while loading notifications',
         ),
       );
     }
@@ -56,7 +56,7 @@ class NotificationCubit extends Cubit<NotificationState> {
     } catch (_) {
       emit(
         const NotificationError(
-          message: 'Terjadi kesalahan saat memperbarui notifikasi',
+          message: 'An error occurred while updating notifications',
         ),
       );
     }

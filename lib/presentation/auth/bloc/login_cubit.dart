@@ -28,7 +28,7 @@ class LoginCubit extends Cubit<LoginState> {
       if (result['success'] == false) {
         emit(
           LoginError(
-            result['message']?.toString() ?? 'Email atau password tidak valid',
+            result['message']?.toString() ?? 'Email or password is invalid',
           ),
         );
         return;
@@ -54,7 +54,7 @@ class LoginCubit extends Cubit<LoginState> {
     } catch (_) {
       emit(
         LoginError(
-          'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.',
+          'Cannot connect to the server. Check your internet connection.',
         ),
       );
     }

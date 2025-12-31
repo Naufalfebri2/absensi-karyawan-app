@@ -29,12 +29,17 @@ class _LeaveFormPageState extends State<LeaveFormPage> {
 
   static const int maxFileSizeInBytes = 5 * 1024 * 1024;
 
-  final List<String> _leaveTypes = ['Cuti', 'Izin', 'Sakit', 'Dinas'];
+  final List<String> _leaveTypes = [
+    'Annual Leave',
+    'Permission',
+    'Sick Leave',
+    'Business Trip',
+  ];
 
   final Map<DateTime, String> _nationalHolidays = {
-    DateTime(2025, 1, 1): 'Tahun Baru',
-    DateTime(2025, 8, 17): 'Hari Kemerdekaan',
-    DateTime(2025, 12, 25): 'Hari Raya Natal',
+    DateTime(2025, 1, 1): 'New Year',
+    DateTime(2025, 8, 17): 'Independence Day',
+    DateTime(2025, 12, 25): 'Christmas Day',
   };
 
   // ===============================
@@ -202,7 +207,7 @@ class _LeaveFormPageState extends State<LeaveFormPage> {
           children: [
             ListTile(
               leading: const Icon(Icons.image),
-              title: const Text('Pilih Gambar'),
+              title: const Text('Choose Image'),
               onTap: () {
                 Navigator.pop(context);
                 _pickAttachment(['jpg', 'jpeg', 'png']);
@@ -210,7 +215,7 @@ class _LeaveFormPageState extends State<LeaveFormPage> {
             ),
             ListTile(
               leading: const Icon(Icons.picture_as_pdf),
-              title: const Text('Pilih PDF'),
+              title: const Text('Choose PDF'),
               onTap: () {
                 Navigator.pop(context);
                 _pickAttachment(['pdf']);
@@ -236,7 +241,7 @@ class _LeaveFormPageState extends State<LeaveFormPage> {
     if (size > maxFileSizeInBytes) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ukuran file maksimal 5 MB')),
+        const SnackBar(content: Text('Maximum file size is 5 MB')),
       );
       return;
     }
@@ -255,7 +260,7 @@ class _LeaveFormPageState extends State<LeaveFormPage> {
         _attachmentFile == null ||
         totalDays == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pastikan semua data valid')),
+        const SnackBar(content: Text('Please ensure all fields are valid')),
       );
       return;
     }
@@ -276,7 +281,7 @@ class _LeaveFormPageState extends State<LeaveFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Ajukan Cuti / Izin')),
+      appBar: AppBar(title: const Text('Submit Leave Request')),
       body: BlocListener<LeaveCubit, LeaveState>(
         listener: (context, state) {
           setState(() => _isSubmitting = state is LeaveLoading);
@@ -293,7 +298,7 @@ class _LeaveFormPageState extends State<LeaveFormPage> {
           child: Column(
             children: [
               DropdownButtonFormField<String>(
-                hint: const Text('Jenis Cuti'),
+                hint: const Text('Leave Type'),
                 items: _leaveTypes
                     .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                     .toList(),
@@ -302,20 +307,20 @@ class _LeaveFormPageState extends State<LeaveFormPage> {
               const SizedBox(height: 16),
 
               _dateField(
-                label: 'Tanggal Mulai',
+                label: 'Start Date',
                 value: _startDate,
                 onTap: () => _openCalendar(isStart: true),
               ),
               const SizedBox(height: 16),
               _dateField(
-                label: 'Tanggal Akhir',
+                label: 'End Date',
                 value: _endDate,
                 onTap: () => _openCalendar(isStart: false),
               ),
 
               const SizedBox(height: 12),
               Text(
-                'Total Hari Kerja: $totalDays',
+                'Total Working Days: $totalDays',
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
 
@@ -323,7 +328,7 @@ class _LeaveFormPageState extends State<LeaveFormPage> {
               TextField(
                 controller: _reasonController,
                 maxLines: 3,
-                decoration: const InputDecoration(labelText: 'Alasan'),
+                decoration: const InputDecoration(labelText: 'Reason'),
               ),
 
               const SizedBox(height: 16),
@@ -332,7 +337,7 @@ class _LeaveFormPageState extends State<LeaveFormPage> {
                 icon: const Icon(Icons.attach_file),
                 label: Text(
                   _attachmentFile == null
-                      ? 'Pilih Lampiran'
+                      ? 'Choose Attachment'
                       : _attachmentFile!.path.split('/').last,
                 ),
               ),
@@ -346,7 +351,7 @@ class _LeaveFormPageState extends State<LeaveFormPage> {
                   title: Text(_attachmentFile!.path.split('/').last),
                   trailing: TextButton(
                     onPressed: () => OpenFile.open(_attachmentFile!.path),
-                    child: const Text('Lihat'),
+                    child: const Text('View'),
                   ),
                 ),
 
@@ -362,7 +367,7 @@ class _LeaveFormPageState extends State<LeaveFormPage> {
                           strokeWidth: 2,
                           color: Colors.white,
                         )
-                      : const Text('Ajukan Cuti'),
+                      : const Text('Submit Leave'),
                 ),
               ),
             ],

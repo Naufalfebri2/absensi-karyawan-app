@@ -18,7 +18,7 @@ class LeaveListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Riwayat Cuti')),
+      appBar: AppBar(title: const Text('Leave History')),
       body: BlocBuilder<LeaveCubit, LeaveState>(
         builder: (context, state) {
           // LOADING
@@ -29,7 +29,7 @@ class LeaveListPage extends StatelessWidget {
           // DATA LOADED
           if (state is LeaveLoaded) {
             if (state.leaves.isEmpty) {
-              return const Center(child: Text('Belum ada pengajuan cuti'));
+              return const Center(child: Text('No leave requests yet'));
             }
 
             return ListView.builder(

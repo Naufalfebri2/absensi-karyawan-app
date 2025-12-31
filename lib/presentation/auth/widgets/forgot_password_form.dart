@@ -49,14 +49,14 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
                 onFieldSubmitted: (_) => loading ? null : _submit(),
                 decoration: const InputDecoration(
                   labelText: 'Email',
-                  hintText: 'Masukkan email',
+                  hintText: 'Enter email',
                 ),
                 validator: (v) {
                   if (v == null || v.isEmpty) {
-                    return 'Email wajib diisi';
+                    return 'Email is required';
                   }
                   if (!v.contains('@')) {
-                    return 'Format email tidak valid';
+                    return 'Invalid email format';
                   }
                   return null;
                 },

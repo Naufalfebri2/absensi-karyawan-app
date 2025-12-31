@@ -77,9 +77,9 @@ class ResetPasswordPage extends StatelessWidget {
                       context: context,
                       barrierDismissible: false,
                       builder: (_) => AlertDialog(
-                        title: const Text('Berhasil'),
+                        title: const Text('Success'),
                         content: const Text(
-                          'Password berhasil direset.\nSilakan login kembali.',
+                          'Password has been successfully reset.\nPlease log in again.',
                         ),
                         actions: [
                           TextButton(
@@ -126,7 +126,7 @@ class ResetPasswordPage extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'Buat password baru untuk\n${_maskEmail(email)}',
+                        'Create a new password for\n${_maskEmail(email)}',
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           fontSize: 14,

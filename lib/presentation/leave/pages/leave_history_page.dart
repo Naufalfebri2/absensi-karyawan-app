@@ -103,7 +103,7 @@ class _LeaveHistoryPageState extends State<LeaveHistoryPage> {
           final List<LeaveEntity> leaves = List<LeaveEntity>.from(state.leaves);
 
           if (leaves.isEmpty) {
-            return const Center(child: Text('Belum ada riwayat cuti'));
+            return const Center(child: Text('No leave history yet'));
           }
 
           final filteredLeaves = leaves.where((leave) {
@@ -114,7 +114,9 @@ class _LeaveHistoryPageState extends State<LeaveHistoryPage> {
           }).toList();
 
           if (filteredLeaves.isEmpty) {
-            return const Center(child: Text('Tidak ada data sesuai filter'));
+            return const Center(
+              child: Text('No data matches the selected filter'),
+            );
           }
 
           return ListView.separated(
@@ -230,7 +232,7 @@ class _LeaveHistoryPageState extends State<LeaveHistoryPage> {
   Widget _buildFab() {
     return FloatingActionButton.extended(
       icon: const Icon(Icons.add),
-      label: const Text('Ajukan Cuti'),
+      label: const Text('Submit Leave'),
       onPressed: () {
         Navigator.push(
           context,

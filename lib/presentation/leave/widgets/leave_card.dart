@@ -85,7 +85,7 @@ class LeaveCard extends StatelessWidget {
 
             // TOTAL DAYS
             Text(
-              'Total: $totalDays hari',
+              'Total: $totalDays days',
               style: const TextStyle(fontWeight: FontWeight.w500),
             ),
           ],

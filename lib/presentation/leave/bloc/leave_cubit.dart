@@ -30,7 +30,7 @@ class LeaveCubit extends Cubit<LeaveState> {
       final leaves = await getLeaves();
       emit(LeaveLoaded(leaves));
     } catch (_) {
-      emit(LeaveError('Gagal memuat data cuti'));
+      emit(LeaveError('Failed to load leave data'));
     }
   }
 
@@ -60,7 +60,7 @@ class LeaveCubit extends Cubit<LeaveState> {
 
       emit(LeaveSuccess());
     } catch (_) {
-      emit(LeaveError('Gagal mengajukan cuti'));
+      emit(LeaveError('Failed to submit leave request'));
     }
   }
 }

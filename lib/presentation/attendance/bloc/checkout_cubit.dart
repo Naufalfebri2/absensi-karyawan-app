@@ -54,7 +54,7 @@ class CheckOutCubit extends Cubit<CheckOutState> {
       // 0️⃣ SELFIE VALIDATION (WAJIB)
       // ===============================
       if (!await selfieFile.exists()) {
-        emit(const CheckOutFailure('Selfie tidak valid'));
+        emit(const CheckOutFailure('Invalid selfie photo'));
         return;
       }
 
@@ -62,7 +62,7 @@ class CheckOutCubit extends Cubit<CheckOutState> {
       // 1️⃣ SHIFT VALIDATION
       // ===============================
       if (!_shift.canCheckOut(now)) {
-        emit(const CheckOutFailure('Belum waktunya Check Out'));
+        emit(const CheckOutFailure('it is not time to check out yet'));
         return;
       }
 
@@ -81,7 +81,7 @@ class CheckOutCubit extends Cubit<CheckOutState> {
       if (distance > _office.radiusMeter) {
         emit(
           const CheckOutFailure(
-            'Anda tidak berada di lokasi GPS yang ditentukan',
+            'You are not within the designated GPS location',
           ),
         );
         return;
@@ -111,7 +111,7 @@ class CheckOutCubit extends Cubit<CheckOutState> {
     } on LocationException catch (e) {
       emit(CheckOutFailure(e.message));
     } catch (_) {
-      emit(const CheckOutFailure('Gagal melakukan Check Out'));
+      emit(const CheckOutFailure('Failed to perform check-out'));
     } finally {
       _isSubmitting = false;
     }

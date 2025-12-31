@@ -222,7 +222,7 @@ class AttendanceCalendar extends StatelessWidget {
             if (state.selectedHolidayName != null) ...[
               const SizedBox(height: 8),
               Text(
-                'Libur Nasional: ${state.selectedHolidayName}',
+                'National Holiday: ${state.selectedHolidayName}',
                 style: const TextStyle(
                   color: Colors.red,
                   fontWeight: FontWeight.w600,

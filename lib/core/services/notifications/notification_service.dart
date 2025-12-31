@@ -52,8 +52,8 @@ class NotificationService {
         onNotify(
           _buildNotification(
             type: NotificationType.checkOutTime,
-            title: 'Jam Pulang',
-            message: 'Sudah memasuki jam pulang, silakan check-out',
+            title: 'End of Workday',
+            message: 'It’s the end of the workday. Please check out',
           ),
         );
       }
@@ -70,8 +70,8 @@ class NotificationService {
         onNotify(
           _buildNotification(
             type: NotificationType.overtimeStart,
-            title: 'Jam Lembur',
-            message: 'Anda memasuki batas jam lembur (21.00)',
+            title: 'Overtime',
+            message: 'You have reached the overtime limit (9:00 PM)',
           ),
         );
       }
@@ -93,8 +93,8 @@ class NotificationService {
       onNotify(
         _buildNotification(
           type: NotificationType.radius,
-          title: 'Area Kantor',
-          message: 'Anda sudah berada di area kantor, silakan check-in',
+          title: 'Office Area',
+          message: 'You are within the office area. Please check in',
         ),
       );
     }

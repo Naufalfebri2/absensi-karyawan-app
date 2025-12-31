@@ -64,7 +64,7 @@ class ForgotPasswordPage extends StatelessWidget {
                       ..showSnackBar(
                         SnackBar(
                           content: Text(
-                            'Kode OTP dikirim ke ${_maskEmail(state.email)}',
+                            'OTP code is sent to ${_maskEmail(state.email)}',
                           ),
                           behavior: SnackBarBehavior.floating,
                           backgroundColor: AppColors.success,

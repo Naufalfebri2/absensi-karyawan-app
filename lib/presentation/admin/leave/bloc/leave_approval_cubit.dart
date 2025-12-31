@@ -23,7 +23,7 @@ class LeaveApprovalCubit extends Cubit<LeaveApprovalState> {
       final data = await getPendingLeaves();
       emit(LeaveApprovalLoaded(data));
     } catch (_) {
-      emit(LeaveApprovalError('Gagal memuat pengajuan cuti'));
+      emit(LeaveApprovalError('Failed to load leave requests'));
     }
   }
 
@@ -33,7 +33,7 @@ class LeaveApprovalCubit extends Cubit<LeaveApprovalState> {
       await approveLeave(id, note);
       await load();
     } catch (_) {
-      emit(LeaveApprovalError('Gagal menyetujui cuti'));
+      emit(LeaveApprovalError('Failed to approve leave request'));
     }
   }
 
@@ -43,7 +43,7 @@ class LeaveApprovalCubit extends Cubit<LeaveApprovalState> {
       await rejectLeave(id, note);
       await load();
     } catch (_) {
-      emit(LeaveApprovalError('Gagal menolak cuti'));
+      emit(LeaveApprovalError('Failed to reject leave request'));
     }
   }
 }

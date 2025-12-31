@@ -151,11 +151,11 @@ class HomeCubit extends Cubit<HomeState> {
     String? restrictionMessage;
 
     if (_gpsErrorMessage != null) {
-      restrictionMessage = 'GPS tidak tersedia';
+      restrictionMessage = 'GPS is not available';
     } else if (_hasCheckedOut) {
-      restrictionMessage = 'Anda sudah Check Out hari ini';
+      restrictionMessage = 'You have already checked out today';
     } else if (isHoliday) {
-      restrictionMessage = 'Hari libur nasional: $holidayName';
+      restrictionMessage = 'National holiday: $holidayName';
     } else {
       if (!_hasCheckedIn) {
         canCheckIn = true;
@@ -166,28 +166,28 @@ class HomeCubit extends Cubit<HomeState> {
         );
 
         if (now.isBefore(shiftStart)) {
-          restrictionMessage = 'Belum masuk jam kerja';
+          restrictionMessage = 'Working hours have not started yet';
         } else if (now.isAfter(lateLimit)) {
-          restrictionMessage = 'Anda Check-In terlambat';
+          restrictionMessage = 'You checked in late';
         }
       } else {
         if (_shift.canCheckOut(now)) {
           canCheckOut = true;
         } else {
-          restrictionMessage = 'Belum waktunya Check Out';
+          restrictionMessage = 'It is not time to check out yet';
         }
       }
     }
 
     if (!isWithinOfficeRadius && restrictionMessage == null) {
-      restrictionMessage = 'Anda berada di luar radius kantor';
+      restrictionMessage = 'You are outside the office radius';
     }
 
     emit(
       HomeLoaded(
         pendingLeaveCount: 0,
         now: now,
-        locationName: 'Universitas Pamulang, Tangerang Selatan',
+        locationName: 'Universitas Pamulang, South Tangerang',
         hasCheckedIn: _hasCheckedIn,
         hasCheckedOut: _hasCheckedOut,
         isHoliday: isHoliday,

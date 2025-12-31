@@ -54,7 +54,7 @@ class _OtpPageState extends State<OtpPage> {
     if (otp.length != 6) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Masukkan 6 digit kode OTP'),
+          content: Text('Please enter the 6-digit OTP code'),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -198,7 +198,7 @@ class _OtpPageState extends State<OtpPage> {
                     return Column(
                       children: [
                         const Text(
-                          'Verifikasi OTP',
+                          'OTP Verification',
                           style: TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.w700,
@@ -206,7 +206,7 @@ class _OtpPageState extends State<OtpPage> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Kode dikirim ke ${_maskEmail(widget.email)}',
+                          'The code has been sent to ${_maskEmail(widget.email)}',
                           style: const TextStyle(
                             fontSize: 14,
                             color: Colors.grey,
@@ -231,7 +231,7 @@ class _OtpPageState extends State<OtpPage> {
                                 ? const CircularProgressIndicator(
                                     strokeWidth: 2,
                                   )
-                                : const Text('Verifikasi'),
+                                : const Text('Verify'),
                           ),
                         ),
 
@@ -239,7 +239,7 @@ class _OtpPageState extends State<OtpPage> {
 
                         TextButton(
                           onPressed: isLoading ? null : () {},
-                          child: const Text('Kirim ulang OTP'),
+                          child: const Text('Resend OTP'),
                         ),
                       ],
                     );

@@ -21,9 +21,9 @@ class LoginUser {
         return Map<String, dynamic>.from(e.response!.data);
       }
 
-      return {'success': false, 'message': 'Gagal terhubung ke server'};
+      return {'success': false, 'message': 'Failure to connect to the server'};
     } catch (e) {
-      return {'success': false, 'message': 'Terjadi kesalahan tak terduga'};
+      return {'success': false, 'message': 'There was an unexpected mistake'};
     }
   }
 }

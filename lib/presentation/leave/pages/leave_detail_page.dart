@@ -11,7 +11,7 @@ class LeaveDetailPage extends StatelessWidget {
     final statusColor = _statusColor(status);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Detail Cuti'), centerTitle: true),
+      appBar: AppBar(title: const Text('Leave Details'), centerTitle: true),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -22,24 +22,24 @@ class LeaveDetailPage extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            _sectionTitle('Jenis Cuti'),
+            _sectionTitle('Leave Type'),
             _valueText(leave['leave_type'] ?? '-'),
 
             const SizedBox(height: 16),
 
-            _sectionTitle('Tanggal'),
+            _sectionTitle('Date'),
             _valueText('${leave['start_date']} - ${leave['end_date']}'),
 
             const SizedBox(height: 16),
 
-            _sectionTitle('Alasan'),
+            _sectionTitle('Reason'),
             _valueText(leave['reason'] ?? '-'),
 
             const SizedBox(height: 16),
 
             if (leave['note'] != null &&
                 leave['note'].toString().isNotEmpty) ...[
-              _sectionTitle('Catatan Atasan'),
+              _sectionTitle('Manager Notes'),
               _valueText(leave['note']),
             ],
           ],

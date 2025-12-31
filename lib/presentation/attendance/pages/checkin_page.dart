@@ -91,7 +91,7 @@ class _CheckInPageState extends State<CheckInPage> {
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Mengerti'),
+                    child: const Text('Understand'),
                   ),
                 ],
               ),
@@ -129,7 +129,7 @@ class _CheckInPageState extends State<CheckInPage> {
                       Icon(Icons.location_on, color: Colors.white, size: 36),
                       SizedBox(height: 12),
                       Text(
-                        'Lokasi Terdeteksi',
+                        'Location Detected',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 16,
@@ -138,7 +138,7 @@ class _CheckInPageState extends State<CheckInPage> {
                       ),
                       SizedBox(height: 4),
                       Text(
-                        'Universitas Pamulang\nTangerang Selatan',
+                        'Pamulang University\nSouth Tangerang',
                         textAlign: TextAlign.center,
                         style: TextStyle(color: Colors.white70, fontSize: 13),
                       ),
@@ -200,7 +200,7 @@ class _CheckInPageState extends State<CheckInPage> {
                             ),
                           )
                         : const Text(
-                            'Konfirmasi Check In',
+                            'Confirm Check-In',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,

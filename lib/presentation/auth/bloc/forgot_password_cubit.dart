@@ -16,10 +16,10 @@ class ForgotPasswordCubit extends Cubit<ForgotPasswordState> {
       if (res['success'] == true) {
         emit(ForgotPasswordSuccess(email));
       } else {
-        emit(ForgotPasswordError(res['message'] ?? 'Gagal mengirim kode OTP'));
+        emit(ForgotPasswordError(res['message'] ?? 'Failure to send OTP code'));
       }
     } catch (_) {
-      emit(ForgotPasswordError('Terjadi kesalahan, silakan coba lagi'));
+      emit(ForgotPasswordError('There is a mistake, please try again'));
     }
   }
 }

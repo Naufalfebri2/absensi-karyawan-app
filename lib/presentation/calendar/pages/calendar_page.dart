@@ -205,8 +205,8 @@ class CalendarEventList extends StatelessWidget {
                     Expanded(
                       child: Text(
                         state.holidayName != null
-                            ? "Libur Nasional – ${state.holidayName}"
-                            : "Libur Nasional",
+                            ? "National Holday – ${state.holidayName}"
+                            : "National Holday",
                         style: const TextStyle(
                           color: Colors.red,
                           fontWeight: FontWeight.w600,
@@ -223,7 +223,7 @@ class CalendarEventList extends StatelessWidget {
               const Padding(
                 padding: EdgeInsets.only(top: 24),
                 child: Text(
-                  "Tidak ada event pada tanggal ini",
+                  "No events on this date",
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.grey),
                 ),

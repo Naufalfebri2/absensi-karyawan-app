@@ -79,7 +79,7 @@ class _CheckOutPageState extends State<CheckOutPage> {
                   children: const [
                     Icon(Icons.logout, color: Colors.red),
                     SizedBox(width: 8),
-                    Text('Check Out Gagal'),
+                    Text('Check-Out Failed'),
                   ],
                 ),
                 content: Text(
@@ -89,7 +89,7 @@ class _CheckOutPageState extends State<CheckOutPage> {
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Mengerti'),
+                    child: const Text('Understand'),
                   ),
                 ],
               ),
@@ -125,7 +125,7 @@ class _CheckOutPageState extends State<CheckOutPage> {
                       Icon(Icons.logout, color: Colors.white, size: 36),
                       SizedBox(height: 12),
                       Text(
-                        'Akhiri Kehadiran',
+                        'End Attendance',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 16,
@@ -134,7 +134,7 @@ class _CheckOutPageState extends State<CheckOutPage> {
                       ),
                       SizedBox(height: 4),
                       Text(
-                        'Ambil foto selfie untuk konfirmasi check out',
+                        'Take a selfie to confirm check-out',
                         textAlign: TextAlign.center,
                         style: TextStyle(color: Colors.white70, fontSize: 13),
                       ),
@@ -196,7 +196,7 @@ class _CheckOutPageState extends State<CheckOutPage> {
                             ),
                           )
                         : const Text(
-                            'Konfirmasi Check Out',
+                            'Confirm Check-Out',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,

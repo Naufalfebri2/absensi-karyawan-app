@@ -11,7 +11,7 @@ class LeaveApprovalPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Approval Cuti'), centerTitle: true),
+      appBar: AppBar(title: const Text('Leave Approval'), centerTitle: true),
       body: BlocBuilder<LeaveApprovalCubit, LeaveApprovalState>(
         builder: (context, state) {
           // ===============================
@@ -26,7 +26,7 @@ class LeaveApprovalPage extends StatelessWidget {
           // ===============================
           if (state is LeaveApprovalLoaded) {
             if (state.leaves.isEmpty) {
-              return const Center(child: Text('Tidak ada pengajuan cuti'));
+              return const Center(child: Text('No leave requests'));
             }
 
             return ListView.separated(
@@ -61,8 +61,8 @@ class LeaveApprovalPage extends StatelessWidget {
                           onPressed: () {
                             showLeaveDecisionDialog(
                               context: context,
-                              title: 'Setujui Pengajuan Cuti',
-                              confirmLabel: 'Setujui',
+                              title: 'Approve Leave Request',
+                              confirmLabel: 'Approve',
                               confirmColor: Colors.green,
                               onConfirm: (note) {
                                 context.read<LeaveApprovalCubit>().approve(
@@ -82,8 +82,8 @@ class LeaveApprovalPage extends StatelessWidget {
                           onPressed: () {
                             showLeaveDecisionDialog(
                               context: context,
-                              title: 'Tolak Pengajuan Cuti',
-                              confirmLabel: 'Tolak',
+                              title: 'Reject Leave Request',
+                              confirmLabel: 'Reject',
                               confirmColor: Colors.red,
                               onConfirm: (note) {
                                 context.read<LeaveApprovalCubit>().reject(

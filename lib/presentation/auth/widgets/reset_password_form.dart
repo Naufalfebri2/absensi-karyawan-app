@@ -59,19 +59,19 @@ class _ResetPasswordFormState extends State<ResetPasswordForm> {
               TextFormField(
                 controller: _passwordC,
                 obscureText: true,
-                decoration: const InputDecoration(labelText: 'Password Baru'),
+                decoration: const InputDecoration(labelText: 'New Password'),
                 validator: (v) =>
-                    v == null || v.length < 6 ? 'Minimal 6 karakter' : null,
+                    v == null || v.length < 6 ? 'Minimum 6 characters' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _confirmC,
                 obscureText: true,
                 decoration: const InputDecoration(
-                  labelText: 'Konfirmasi Password',
+                  labelText: 'Confirm Password',
                 ),
                 validator: (v) =>
-                    v != _passwordC.text ? 'Password tidak sama' : null,
+                    v != _passwordC.text ? 'Passwords do not match' : null,
               ),
               const SizedBox(height: 32),
               Center(

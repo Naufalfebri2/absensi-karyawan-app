@@ -30,7 +30,9 @@ class OtpCubit extends Cubit<OtpState> {
 
           if (token == null || token.toString().isEmpty) {
             emit(
-              OtpError("Verifikasi OTP berhasil, tetapi token tidak ditemukan"),
+              OtpError(
+                "OTP verification succeeded, but the token was not found",
+              ),
             );
             return;
           }
@@ -44,11 +46,11 @@ class OtpCubit extends Cubit<OtpState> {
         return;
       }
 
-      emit(OtpError(result['message']?.toString() ?? "Kode OTP tidak valid"));
+      emit(OtpError(result['message']?.toString() ?? "Invalid OTP code"));
     } catch (_) {
       emit(
         OtpError(
-          "Tidak dapat memverifikasi OTP. Periksa koneksi internet Anda.",
+          "Unable to verify OTP. Please check your internet connection.",
         ),
       );
     }

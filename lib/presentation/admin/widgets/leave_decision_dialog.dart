@@ -18,14 +18,14 @@ Future<void> showLeaveDecisionDialog({
         controller: controller,
         maxLines: 3,
         decoration: const InputDecoration(
-          hintText: 'Catatan (opsional)',
+          hintText: 'Note (optional)',
           border: OutlineInputBorder(),
         ),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Batal'),
+          child: const Text('Cancel'),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(backgroundColor: confirmColor),

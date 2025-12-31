@@ -78,10 +78,10 @@ class _LoginFormState extends State<LoginForm> {
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return 'Email tidak boleh kosong';
+                return 'Email should not be empty';
               }
               if (!value.contains('@')) {
-                return 'Format email tidak valid';
+                return 'Email format is invalid';
               }
               return null;
             },
@@ -123,10 +123,10 @@ class _LoginFormState extends State<LoginForm> {
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return 'Password tidak boleh kosong';
+                return 'Password should not be empty';
               }
               if (value.length < 6) {
-                return 'Minimal 6 karakter';
+                return 'Minimum of 6 characters';
               }
               return null;
             },
@@ -157,7 +157,7 @@ class _LoginFormState extends State<LoginForm> {
                   context.go('/reset-password', extra: {'email': email});
                 },
                 child: const Text(
-                  'Lupa password?',
+                  'Forgot password?',
                   style: TextStyle(fontSize: 13, color: Color(0xFF1B9E8A)),
                 ),
               ),
