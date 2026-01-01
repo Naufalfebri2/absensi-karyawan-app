@@ -82,16 +82,20 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
   }
 
   @override
-  Future<AttendanceEntity> saveCheckOut({
+  Future<AttendanceActionEntity> saveCheckOut({
     required DateTime time,
     required AttendanceStatus status,
     required String selfiePath,
+    double? latitude,
+    double? longitude,
     int? employeeId,
   }) {
     return remoteDataSource.saveCheckOut(
       time: time,
       status: status,
       selfiePath: selfiePath,
+      latitude: latitude,
+      longitude: longitude,
       employeeId: employeeId,
     );
   }

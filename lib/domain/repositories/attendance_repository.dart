@@ -53,10 +53,12 @@ abstract class AttendanceRepository {
   });
 
   /// Simpan Check-Out lengkap (selfie + status)
-  Future<AttendanceEntity> saveCheckOut({
+  Future<AttendanceActionEntity> saveCheckOut({
     required DateTime time,
     required AttendanceStatus status,
     required String selfiePath,
+    double? latitude,
+    double? longitude,
 
     // 🔥 OPTIONAL
     int? employeeId,

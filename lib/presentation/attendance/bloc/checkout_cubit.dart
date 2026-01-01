@@ -105,6 +105,8 @@ class CheckOutCubit extends Cubit<CheckOutState> {
         time: now,
         status: status,
         selfiePath: selfieFile.path,
+        latitude: userLatLng.latitude,
+        longitude: userLatLng.longitude,
       );
 
       emit(CheckOutSuccess(status: status, checkOutTime: now));
