@@ -6,8 +6,11 @@ import '../bloc/home_cubit.dart';
 import '../bloc/home_state.dart';
 
 import '../widgets/animated_clock.dart';
+import '../widgets/summary_item_card.dart';
 
 import '../../attendance/bloc/attendance_cubit.dart';
+import '../../attendance/bloc/attendance_state.dart';
+
 import '../../notifications/bloc/notification_cubit.dart';
 import '../../notifications/bloc/notification_state.dart';
 
@@ -19,9 +22,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // ===============================
-  // ROUTE-BASED CURRENT INDEX
-  // ===============================
   int _currentIndex(BuildContext context) {
     final location = GoRouterState.of(context).uri.toString();
 
@@ -62,10 +62,6 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     context.read<HomeCubit>().loadDashboard();
-
-    // ===============================
-    // LOAD NOTIFICATION BADGE
-    // ===============================
     context.read<NotificationCubit>().loadNotifications();
   }
 
@@ -82,10 +78,6 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-
-      // ===============================
-      // BODY
-      // ===============================
       body: SafeArea(
         child: Column(
           children: [
@@ -99,9 +91,7 @@ class _HomePageState extends State<HomePage> {
               child: Row(
                 children: [
                   GestureDetector(
-                    onTap: () {
-                      context.push('/profile');
-                    },
+                    onTap: () => context.push('/profile'),
                     child: CircleAvatar(
                       radius: 18,
                       backgroundColor: Colors.white,
@@ -124,14 +114,9 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   const Spacer(),
-
-                  // ===============================
-                  // NOTIFICATION ICON + BADGE
-                  // ===============================
                   BlocBuilder<NotificationCubit, NotificationState>(
                     builder: (context, notifState) {
                       int unreadCount = 0;
-
                       if (notifState is NotificationLoaded) {
                         unreadCount = notifState.unreadCount;
                       }
@@ -139,9 +124,7 @@ class _HomePageState extends State<HomePage> {
                       return Stack(
                         children: [
                           IconButton(
-                            onPressed: () {
-                              context.push('/notifications');
-                            },
+                            onPressed: () => context.push('/notifications'),
                             icon: const Icon(
                               Icons.notifications,
                               color: Colors.white,
@@ -195,151 +178,233 @@ class _HomePageState extends State<HomePage> {
                       '${now.year}';
 
                   return SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: brown,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Column(
-                          children: [
-                            Text(
-                              dateText,
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 14,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            AnimatedClock(
-                              now: now,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 36,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1.5,
-                              ),
-                            ),
-
-                            if (distanceFromOffice != null) ...[
-                              const SizedBox(height: 6),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        // ===============================
+                        // ATTENDANCE CARD
+                        // ===============================
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: brown,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Column(
+                            children: [
                               Text(
-                                'Distance to office: '
-                                '${distanceFromOffice.toStringAsFixed(0)} m',
+                                dateText,
                                 style: const TextStyle(
                                   color: Colors.white70,
-                                  fontSize: 12,
+                                  fontSize: 14,
                                 ),
                               ),
-                            ],
-
-                            if (restrictionMessage != null) ...[
-                              const SizedBox(height: 12),
-                              Text(
-                                restrictionMessage,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  color: Colors.yellow,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-
-                            if (isCheckedOut) ...[
                               const SizedBox(height: 8),
-                              const Text(
-                                'You have already checked out today',
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
+                              AnimatedClock(
+                                now: now,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 36,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1.5,
                                 ),
-                                textAlign: TextAlign.center,
                               ),
-                            ],
+                              if (distanceFromOffice != null) ...[
+                                const SizedBox(height: 6),
+                                Text(
+                                  'Distance to office: ${distanceFromOffice.toStringAsFixed(0)} m',
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                              if (restrictionMessage != null) ...[
+                                const SizedBox(height: 12),
+                                Text(
+                                  restrictionMessage,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    color: Colors.yellow,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                              if (isCheckedOut) ...[
+                                const SizedBox(height: 8),
+                                const Text(
+                                  'You have already checked out today',
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                              const SizedBox(height: 16),
+                              SizedBox(
+                                width: double.infinity,
+                                height: 44,
+                                child: ElevatedButton.icon(
+                                  onPressed: buttonEnabled
+                                      ? () async {
+                                          final homeCubit = context
+                                              .read<HomeCubit>();
 
-                            const SizedBox(height: 16),
-
-                            // ===============================
-                            // CHECK IN / CHECK OUT BUTTON
-                            // ===============================
-                            SizedBox(
-                              width: double.infinity,
-                              height: 44,
-                              child: ElevatedButton.icon(
-                                onPressed: buttonEnabled
-                                    ? () async {
-                                        final homeCubit = context
-                                            .read<HomeCubit>();
-
-                                        if (!isCheckedIn) {
-                                          final result = await context.push(
-                                            '/attendance/checkin',
-                                          );
-
-                                          if (!context.mounted) return;
-
-                                          if (result != null) {
-                                            homeCubit.refresh();
-                                            context
-                                                .read<NotificationCubit>()
-                                                .loadNotifications();
-                                          }
-                                        } else {
-                                          final result = await context.push(
-                                            '/attendance/checkout',
-                                          );
-
-                                          if (!context.mounted) return;
-
-                                          if (result is Map) {
-                                            final checkOutTime =
-                                                result['checkOutTime']
-                                                    as DateTime?;
-
-                                            if (checkOutTime != null) {
+                                          if (!isCheckedIn) {
+                                            final result = await context.push(
+                                              '/attendance/checkin',
+                                            );
+                                            if (!context.mounted) return;
+                                            if (result != null) {
                                               homeCubit.refresh();
-
-                                              context
-                                                  .read<AttendanceCubit>()
-                                                  .syncAfterCheckOut(
-                                                    checkOutTime: checkOutTime,
-                                                  );
-
                                               context
                                                   .read<NotificationCubit>()
                                                   .loadNotifications();
                                             }
+                                          } else {
+                                            final result = await context.push(
+                                              '/attendance/checkout',
+                                            );
+                                            if (!context.mounted) return;
+                                            if (result is Map) {
+                                              final checkOutTime =
+                                                  result['checkOutTime']
+                                                      as DateTime?;
+                                              if (checkOutTime != null) {
+                                                homeCubit.refresh();
+                                                context
+                                                    .read<AttendanceCubit>()
+                                                    .syncAfterCheckOut(
+                                                      checkOutTime:
+                                                          checkOutTime,
+                                                    );
+                                                context
+                                                    .read<NotificationCubit>()
+                                                    .loadNotifications();
+                                              }
+                                            }
                                           }
                                         }
-                                      }
-                                    : null,
-                                icon: Icon(
-                                  isCheckedIn ? Icons.logout : Icons.login,
-                                ),
-                                label: Text(
-                                  isCheckedIn ? 'Check Out' : 'Check In',
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: buttonEnabled
-                                      ? (isCheckedIn
-                                            ? Colors.red.shade400
-                                            : lightBrown)
-                                      : Colors.grey,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                      : null,
+                                  icon: Icon(
+                                    isCheckedIn ? Icons.logout : Icons.login,
+                                  ),
+                                  label: Text(
+                                    isCheckedIn ? 'Check Out' : 'Check In',
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: buttonEnabled
+                                        ? (isCheckedIn
+                                              ? Colors.red.shade400
+                                              : lightBrown)
+                                        : Colors.grey,
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
                                   ),
                                 ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // ===============================
+                        // THIS MONTH SUMMARY (HISTORICAL)
+                        // ===============================
+                        const SizedBox(height: 20),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'This Month Summary',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: brown,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: SummaryItemCard(
+                                label: 'Present',
+                                value: state.presentCount,
+                                icon: Icons.check_circle,
+                                color: Colors.green,
+                                onTap: () {
+                                  context.push(
+                                    '/attendance',
+                                    extra: {
+                                      'month': state.now.month,
+                                      'year': state.now.year,
+                                      'status': AttendanceFilter.onTime,
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                            Expanded(
+                              child: SummaryItemCard(
+                                label: 'Late',
+                                value: state.lateCount,
+                                icon: Icons.access_time,
+                                color: Colors.orange,
+                                onTap: () {
+                                  context.push(
+                                    '/attendance',
+                                    extra: {
+                                      'month': state.now.month,
+                                      'year': state.now.year,
+                                      'status': AttendanceFilter.onTime,
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                            Expanded(
+                              child: SummaryItemCard(
+                                label: 'Absent',
+                                value: state.absentCount,
+                                icon: Icons.cancel,
+                                color: Colors.red,
+                                onTap: () {
+                                  context.push(
+                                    '/attendance',
+                                    extra: {
+                                      'month': state.now.month,
+                                      'year': state.now.year,
+                                      'status': AttendanceFilter.all,
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                            Expanded(
+                              child: SummaryItemCard(
+                                label: 'Overtime',
+                                value: state.overtimeCount,
+                                icon: Icons.trending_up,
+                                color: Colors.blue,
+                                onTap: () {
+                                  context.push(
+                                    '/attendance',
+                                    extra: {
+                                      'month': state.now.month,
+                                      'year': state.now.year,
+                                      'status': AttendanceFilter.all,
+                                    },
+                                  );
+                                },
                               ),
                             ),
                           ],
                         ),
-                      ),
+                      ],
                     ),
                   );
                 },

@@ -95,9 +95,30 @@ class _AttendanceView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ===============================
+    // 🔥 NEW: READ FILTER FROM ROUTE EXTRA
+    // ===============================
+    final extra = GoRouterState.of(context).extra;
+
+    final int? initialMonth = extra is Map ? extra['month'] as int? : null;
+    final int? initialYear = extra is Map ? extra['year'] as int? : null;
+
+    final cubit = context.read<AttendanceCubit>();
+
+    // ===============================
+    // 🔥 APPLY FILTER ONCE (SAFE)
+    // ===============================
+    if (initialMonth != null && initialYear != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (cubit.state.selectedMonth != initialMonth ||
+            cubit.state.selectedYear != initialYear) {
+          cubit.changeMonth(year: initialYear, month: initialMonth);
+        }
+      });
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
-
       body: SafeArea(
         child: Column(
           children: [
@@ -149,7 +170,6 @@ class _AttendanceView extends StatelessWidget {
             Expanded(
               child: BlocBuilder<AttendanceCubit, AttendanceState>(
                 builder: (context, state) {
-                  final cubit = context.read<AttendanceCubit>();
                   final records = cubit.visibleRecords;
 
                   if (state.loading) {
@@ -274,7 +294,7 @@ class _AttendanceView extends StatelessWidget {
       ),
 
       // ===============================
-      // BOTTOM NAV (FIXED & SYNC)
+      // BOTTOM NAV (TETAP)
       // ===============================
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _getIndexFromLocation(context),

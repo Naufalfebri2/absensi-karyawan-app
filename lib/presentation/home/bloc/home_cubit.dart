@@ -9,6 +9,8 @@ import '../../../core/utils/distance_utils.dart';
 import '../../../domain/entities/shift_entity.dart';
 import '../../../domain/entities/office_location_entity.dart';
 import '../../../domain/usecases/attendance/get_today_attendance.dart';
+// 🔥 NEW (optional – nanti bisa diganti API khusus summary)
+// import '../../../domain/usecases/attendance/get_monthly_attendance.dart';
 
 import 'home_state.dart';
 
@@ -16,11 +18,14 @@ class HomeCubit extends Cubit<HomeState> {
   final HolidayService holidayService;
   final LocationService locationService;
   final GetTodayAttendance getTodayAttendance;
+  // 🔥 NEW (optional)
+  // final GetMonthlyAttendance getMonthlyAttendance;
 
   HomeCubit({
     required this.holidayService,
     required this.locationService,
     required this.getTodayAttendance,
+    // required this.getMonthlyAttendance,
   }) : super(const HomeInitial());
 
   // ===============================
@@ -49,12 +54,21 @@ class HomeCubit extends Cubit<HomeState> {
   String? _gpsErrorMessage;
 
   // ===============================
+  // 🔥 MONTHLY SUMMARY CACHE (NEW)
+  // ===============================
+  int _presentCount = 0;
+  int _lateCount = 0;
+  int _absentCount = 0;
+  int _overtimeCount = 0;
+
+  // ===============================
   // LOAD DASHBOARD (INIT)
   // ===============================
   Future<void> loadDashboard() async {
     emit(const HomeLoading());
 
     await _loadTodayFromSource();
+    await _loadMonthlySummary(); // 🔥 NEW
 
     _clockTimer?.cancel();
     _clockTimer = Timer.periodic(
@@ -70,19 +84,18 @@ class HomeCubit extends Cubit<HomeState> {
   }
 
   // ===============================
-  // 🔥 AUTO REFRESH HOME (BARU)
+  // 🔥 AUTO REFRESH HOME
   // ===============================
   Future<void> refresh() async {
     await _loadTodayFromSource();
+    await _loadMonthlySummary(); // 🔥 NEW
     _emitHomeState(DateTime.now());
   }
 
   // ===============================
-  // 🔒 ENSURE AUTO REFRESH (SAFE GUARD)
+  // 🔒 ENSURE AUTO REFRESH
   // ===============================
   void ensureAutoRefresh() {
-    // Jika timer jam belum aktif (misal setelah pindah tab),
-    // aktifkan kembali TANPA reload API
     if (_clockTimer == null || !_clockTimer!.isActive) {
       _clockTimer?.cancel();
       _clockTimer = Timer.periodic(
@@ -93,7 +106,7 @@ class HomeCubit extends Cubit<HomeState> {
   }
 
   // ===============================
-  // LOAD TODAY FROM SOURCE (SINGLE SOURCE OF TRUTH)
+  // LOAD TODAY (SINGLE SOURCE)
   // ===============================
   Future<void> _loadTodayFromSource() async {
     final now = DateTime.now();
@@ -110,6 +123,28 @@ class HomeCubit extends Cubit<HomeState> {
     _holidayCache = await holidayService.getNationalHolidays(now.year);
 
     await _updateGps();
+  }
+
+  // ===============================
+  // 🔥 LOAD MONTHLY SUMMARY (NEW)
+  // ===============================
+  Future<void> _loadMonthlySummary() async {
+    try {
+      // ⚠️ SEMENTARA HARD-CODE / PLACEHOLDER
+      // Jika backend sudah siap:
+      // final data = await getMonthlyAttendance();
+      // lalu aggregate di sini
+
+      _presentCount = 18;
+      _lateCount = 3;
+      _absentCount = 1;
+      _overtimeCount = 2;
+    } catch (_) {
+      _presentCount = 0;
+      _lateCount = 0;
+      _absentCount = 0;
+      _overtimeCount = 0;
+    }
   }
 
   // ===============================
@@ -134,7 +169,7 @@ class HomeCubit extends Cubit<HomeState> {
   }
 
   // ===============================
-  // EMIT HOME STATE (FINAL LOGIC)
+  // EMIT HOME STATE (FINAL)
   // ===============================
   void _emitHomeState(DateTime now) {
     final today = DateTime(now.year, now.month, now.day);
@@ -198,12 +233,18 @@ class HomeCubit extends Cubit<HomeState> {
         isWithinOfficeRadius: isWithinOfficeRadius,
         distanceFromOffice: _distanceFromOffice,
         gpsErrorMessage: _gpsErrorMessage,
+
+        // 🔥 NEW SUMMARY DATA
+        presentCount: _presentCount,
+        lateCount: _lateCount,
+        absentCount: _absentCount,
+        overtimeCount: _overtimeCount,
       ),
     );
   }
 
   // ===============================
-  // UI OPTIMIZATION (OPTIONAL)
+  // UI OPTIMIZATION
   // ===============================
   void markCheckedIn() {
     _hasCheckedIn = true;

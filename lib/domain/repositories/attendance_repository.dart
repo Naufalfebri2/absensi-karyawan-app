@@ -11,6 +11,9 @@ abstract class AttendanceRepository {
     required int year,
     required int month,
 
+    // 🔥 NEW: API FILTER STATUS
+    String? status,
+
     // 🔥 OPTIONAL: untuk admin / manager
     int? employeeId,
   });

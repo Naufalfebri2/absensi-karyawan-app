@@ -4,6 +4,7 @@ import '../../../core/services/holiday/holiday_service.dart';
 import '../../../domain/entities/attendance_entity.dart';
 import '../../../domain/repositories/attendance_repository.dart';
 import 'attendance_state.dart';
+import '../utils/attendance_status_mapper.dart';
 
 class AttendanceCubit extends Cubit<AttendanceState> {
   final AttendanceRepository repository;
@@ -18,7 +19,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
   Future<void> init() async {
     final now = DateTime.now();
 
-    // 🔥 urutan aman
+    // urutan aman
     await loadHolidays(now.year);
     await loadAttendance(year: now.year, month: now.month);
     await loadTodayAttendance();
@@ -32,20 +33,24 @@ class AttendanceCubit extends Cubit<AttendanceState> {
       final holidays = await holidayService.getNationalHolidays(year);
       emit(state.copyWith(holidays: holidays));
     } catch (_) {
-      // optional: jangan crash UI
+      // silent fail, UI tidak crash
     }
   }
 
   // ===================================================
-  // LOAD ATTENDANCE HISTORY (PER BULAN)
+  // LOAD ATTENDANCE HISTORY (PER BULAN + STATUS API)
   // ===================================================
   Future<void> loadAttendance({required int year, required int month}) async {
     emit(state.copyWith(loading: true));
 
     try {
+      // 🔥 MAP FILTER UI → STATUS API
+      final apiStatus = mapAttendanceFilterToApiStatus(state.filter);
+
       final records = await repository.getAttendanceHistory(
         year: year,
         month: month,
+        status: apiStatus,
       );
 
       emit(
@@ -69,10 +74,9 @@ class AttendanceCubit extends Cubit<AttendanceState> {
   Future<void> loadTodayAttendance() async {
     try {
       final today = await repository.getTodayAttendance();
-      print(today);
       emit(state.copyWith(todayAttendance: today));
-    } catch (e) {
-      // print("error of : ${e}");
+    } catch (_) {
+      // optional logging
     }
   }
 
@@ -107,10 +111,13 @@ class AttendanceCubit extends Cubit<AttendanceState> {
   }
 
   // ===================================================
-  // CHANGE FILTER
+  // CHANGE FILTER (🔥 TRIGGER API RELOAD)
   // ===================================================
-  void changeFilter(AttendanceFilter filter) {
+  Future<void> changeFilter(AttendanceFilter filter) async {
     emit(state.copyWith(filter: filter));
+
+    // 🔥 reload data dari API sesuai filter baru
+    await loadAttendance(year: state.selectedYear, month: state.selectedMonth);
   }
 
   // ===================================================
@@ -164,7 +171,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
   }
 
   // ===================================================
-  // FILTERED RECORDS
+  // FILTERED RECORDS (CLIENT SIDE – SAFETY)
   // ===================================================
   List<AttendanceEntity> get filteredRecords {
     final list = List<AttendanceEntity>.from(state.records);
@@ -200,5 +207,6 @@ class AttendanceCubit extends Cubit<AttendanceState> {
       a.year == b.year && a.month == b.month && a.day == b.day;
 
   String _formatTime(DateTime time) =>
-      '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+      '${time.hour.toString().padLeft(2, '0')}:'
+      '${time.minute.toString().padLeft(2, '0')}';
 }

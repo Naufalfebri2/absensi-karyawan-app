@@ -338,18 +338,18 @@ class _ProfilePageState extends State<ProfilePage> {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text("Logout"),
-        content: const Text("Apakah Anda yakin ingin keluar?"),
+        content: const Text("Are you sure you want to get out??"),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Batal"),
+            child: const Text("Void"),
           ),
           TextButton(
             onPressed: () {
               context.read<AuthCubit>().logout();
               context.go('/login');
             },
-            child: const Text("Logout", style: TextStyle(color: Colors.red)),
+            child: const Text("Logout", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),

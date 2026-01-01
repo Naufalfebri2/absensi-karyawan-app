@@ -8,11 +8,16 @@ class AttendanceRemote {
   AttendanceRemote(this.dio);
 
   // ===============================
-  // ATTENDANCE HISTORY
+  // ATTENDANCE HISTORY (API FILTERED)
   // ===============================
   Future<List<AttendanceEntity>> getAttendanceHistory({
     required int year,
     required int month,
+
+    // 🔥 NEW (API STATUS STRING)
+    String? status,
+
+    // 🔒 OPTIONAL
     int? employeeId,
   }) async {
     final response = await dio.get(
@@ -20,6 +25,7 @@ class AttendanceRemote {
       queryParameters: {
         'year': year,
         'month': month,
+        if (status != null) 'status': status,
         if (employeeId != null) 'employee_id': employeeId,
       },
       options: Options(headers: {'Accept': 'application/json'}),
@@ -36,7 +42,7 @@ class AttendanceRemote {
   }
 
   // ===============================
-  // TODAY ATTENDANCE
+  // TODAY ATTENDANCE (FIXED)
   // ===============================
   Future<AttendanceEntity?> getTodayAttendance({int? employeeId}) async {
     try {
@@ -47,9 +53,23 @@ class AttendanceRemote {
       );
 
       final data = response.data['data'];
+
+      // 🔹 Tidak ada data
       if (data == null) return null;
 
-      return AttendanceEntity.fromJson(Map<String, dynamic>.from(data));
+      // 🔹 API mengembalikan LIST
+      if (data is List) {
+        if (data.isEmpty) return null;
+
+        return AttendanceEntity.fromJson(Map<String, dynamic>.from(data.first));
+      }
+
+      // 🔹 API mengembalikan OBJECT
+      if (data is Map) {
+        return AttendanceEntity.fromJson(Map<String, dynamic>.from(data));
+      }
+
+      return null;
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {
         return null;

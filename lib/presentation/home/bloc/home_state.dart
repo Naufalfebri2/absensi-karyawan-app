@@ -60,6 +60,14 @@ class HomeLoaded extends HomeState {
   final double? distanceFromOffice;
   final String? gpsErrorMessage;
 
+  // ===============================
+  // 🔥 MONTHLY SUMMARY (NEW)
+  // ===============================
+  final int presentCount;
+  final int lateCount;
+  final int absentCount;
+  final int overtimeCount;
+
   const HomeLoaded({
     required this.pendingLeaveCount,
     required this.now,
@@ -74,6 +82,12 @@ class HomeLoaded extends HomeState {
     required this.isWithinOfficeRadius,
     this.distanceFromOffice,
     this.gpsErrorMessage,
+
+    // 🔥 NEW
+    required this.presentCount,
+    required this.lateCount,
+    required this.absentCount,
+    required this.overtimeCount,
   });
 
   // ===============================
@@ -93,6 +107,12 @@ class HomeLoaded extends HomeState {
     bool? isWithinOfficeRadius,
     double? distanceFromOffice,
     String? gpsErrorMessage,
+
+    // 🔥 NEW
+    int? presentCount,
+    int? lateCount,
+    int? absentCount,
+    int? overtimeCount,
   }) {
     return HomeLoaded(
       pendingLeaveCount: pendingLeaveCount ?? this.pendingLeaveCount,
@@ -108,6 +128,12 @@ class HomeLoaded extends HomeState {
       isWithinOfficeRadius: isWithinOfficeRadius ?? this.isWithinOfficeRadius,
       distanceFromOffice: distanceFromOffice ?? this.distanceFromOffice,
       gpsErrorMessage: gpsErrorMessage ?? this.gpsErrorMessage,
+
+      // 🔥 NEW
+      presentCount: presentCount ?? this.presentCount,
+      lateCount: lateCount ?? this.lateCount,
+      absentCount: absentCount ?? this.absentCount,
+      overtimeCount: overtimeCount ?? this.overtimeCount,
     );
   }
 
@@ -126,5 +152,11 @@ class HomeLoaded extends HomeState {
     isWithinOfficeRadius,
     distanceFromOffice,
     gpsErrorMessage,
+
+    // 🔥 NEW
+    presentCount,
+    lateCount,
+    absentCount,
+    overtimeCount,
   ];
 }
