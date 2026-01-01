@@ -21,9 +21,7 @@ class LeaveRemote {
       );
 
       final data = response.data;
-      print(data);
 
-      // ✅ Aman untuk berbagai bentuk response
       if (data is Map && data['data'] is List) {
         return List<dynamic>.from(data['data']);
       }
@@ -32,7 +30,6 @@ class LeaveRemote {
         return List<dynamic>.from(data);
       }
 
-      // fallback aman
       return [];
     } on DioException catch (e) {
       throw Exception(
@@ -43,7 +40,7 @@ class LeaveRemote {
 
   /// CREATE leave (pengajuan cuti / izin)
   Future<void> createLeave({
-    required int employeeId, // ⬅️ DITAMBAHKAN
+    required int employeeId,
     required String leaveType,
     required DateTime startDate,
     required DateTime endDate,
@@ -53,7 +50,7 @@ class LeaveRemote {
   }) async {
     try {
       final formData = FormData.fromMap({
-        'employee_id': employeeId, // ⬅️ WAJIB UNTUK BACKEND
+        'employee_id': employeeId,
         'leave_type': leaveType,
         'start_date': _formatDate(startDate),
         'end_date': _formatDate(endDate),
@@ -140,8 +137,44 @@ class LeaveRemote {
   }
 
   // ===============================
+  // CALENDAR (NEW - KRUSIAL)
+  // ===============================
+
+  /// GET APPROVED leave (untuk calendar) by month
+  /// month format: yyyy-MM
+  Future<List<dynamic>> fetchApprovedLeavesByMonth({
+    required String month,
+  }) async {
+    try {
+      final response = await dio.get(
+        ApiEndpoint.leaves, // ✅ endpoint existing
+        queryParameters: {'status': 'approved', 'month': month},
+        options: Options(headers: {'Accept': 'application/json'}),
+      );
+
+      final data = response.data;
+
+      if (data is Map && data['data'] is List) {
+        return List<dynamic>.from(data['data']);
+      }
+
+      if (data is List) {
+        return List<dynamic>.from(data);
+      }
+
+      return [];
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data?['message'] ??
+            'Failed to load approved leave for calendar',
+      );
+    }
+  }
+
+  // ===============================
   // HELPER
   // ===============================
+
   String _formatDate(DateTime date) {
     return '${date.year.toString().padLeft(4, '0')}-'
         '${date.month.toString().padLeft(2, '0')}-'

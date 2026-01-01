@@ -1,11 +1,15 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'calendar_state.dart';
+import '../../../domain/entities/leave_entity.dart';
+import '../../../domain/repositories/leave_repository.dart';
 import '../../../data/datasources/local/holiday_local.dart';
 import '../../../core/utils/holiday_utils.dart';
 
 class CalendarCubit extends Cubit<CalendarState> {
-  CalendarCubit() : super(CalendarState.initial()) {
+  final LeaveRepository leaveRepository;
+
+  CalendarCubit(this.leaveRepository) : super(CalendarState.initial()) {
     _init();
   }
 
@@ -25,11 +29,11 @@ class CalendarCubit extends Cubit<CalendarState> {
       ),
     );
 
-    loadDate(now);
+    loadMonth(now);
   }
 
   // ===============================
-  // GENERATE YEAR LIST (1990 - CURRENT)
+  // GENERATE YEAR LIST
   // ===============================
   List<int> _generateYears() {
     final currentYear = DateTime.now().year;
@@ -37,48 +41,21 @@ class CalendarCubit extends Cubit<CalendarState> {
   }
 
   // ===============================
-  // CHANGE MONTH (DROPDOWN / ARROW)
+  // CHANGE MONTH / YEAR
   // ===============================
   void changeMonth(int month) {
     final newDate = DateTime(state.selectedYear, month);
-
     emit(state.copyWith(selectedMonth: month, focusedMonth: newDate));
-
-    loadDate(newDate);
+    loadMonth(newDate);
   }
 
-  // ===============================
-  // CHANGE YEAR (DROPDOWN / ARROW)
-  // ===============================
   void changeYear(int year) {
     if (!state.availableYears.contains(year)) return;
-
     final newDate = DateTime(year, state.selectedMonth);
-
     emit(state.copyWith(selectedYear: year, focusedMonth: newDate));
-
-    loadDate(newDate);
+    loadMonth(newDate);
   }
 
-  // ===============================
-  // SELECT DATE (CLICK DAY)
-  // ===============================
-  void selectDate(DateTime date) {
-    emit(
-      state.copyWith(
-        selectedDate: date,
-        selectedYear: date.year,
-        selectedMonth: date.month,
-        focusedMonth: DateTime(date.year, date.month),
-      ),
-    );
-
-    loadDate(date);
-  }
-
-  // ===============================
-  // NEXT / PREVIOUS MONTH
-  // ===============================
   void nextMonth() {
     final next = DateTime(state.selectedYear, state.selectedMonth + 1);
     _syncMonthYear(next);
@@ -100,44 +77,86 @@ class CalendarCubit extends Cubit<CalendarState> {
       ),
     );
 
-    loadDate(date);
+    loadMonth(date);
   }
 
   // ===============================
-  // LOAD DATE (HOLIDAY + EVENTS)
+  // SELECT DATE
   // ===============================
-  Future<void> loadDate(DateTime date) async {
-    emit(state.copyWith(loading: true));
-
-    final isHoliday = HolidayUtils.isHoliday(date, HolidayLocal.holidays);
-
-    final holidayName = HolidayUtils.getHolidayName(
-      date,
-      HolidayLocal.holidays,
-    );
-
-    // 🔹 Dummy events (replace API later)
-    await Future.delayed(const Duration(milliseconds: 300));
+  void selectDate(DateTime date) {
+    final key = DateTime(date.year, date.month, date.day);
 
     emit(
       state.copyWith(
         selectedDate: date,
-        events: const [
-          CalendarEvent(
-            title: "Mici’s Sick Leave",
-            subtitle: "Not feeling well.",
-            avatarUrl: "https://i.pravatar.cc/150?img=32",
-          ),
-          CalendarEvent(
-            title: "Andrean’s Permission",
-            subtitle: "Personal matter.",
-            avatarUrl: "https://i.pravatar.cc/150?img=12",
-          ),
-        ],
+        selectedYear: date.year,
+        selectedMonth: date.month,
+        focusedMonth: DateTime(date.year, date.month),
+        events: _buildEventsForDate(key),
+      ),
+    );
+  }
+
+  // ===============================
+  // LOAD MONTH (API + HOLIDAY)
+  // ===============================
+  Future<void> loadMonth(DateTime month) async {
+    emit(state.copyWith(loading: true));
+
+    final isHoliday = HolidayUtils.isHoliday(month, HolidayLocal.holidays);
+
+    final holidayName = HolidayUtils.getHolidayName(
+      month,
+      HolidayLocal.holidays,
+    );
+
+    final leaves = await leaveRepository.getApprovedLeavesByMonth(month: month);
+
+    final Map<DateTime, List<LeaveEntity>> grouped = {};
+
+    for (final leave in leaves) {
+      DateTime date = leave.startDate!;
+      while (!date.isAfter(leave.endDate!)) {
+        final key = DateTime(date.year, date.month, date.day);
+        grouped.putIfAbsent(key, () => []);
+        grouped[key]!.add(leave);
+        date = date.add(const Duration(days: 1));
+      }
+    }
+
+    final selectedKey = DateTime(
+      state.selectedDate.year,
+      state.selectedDate.month,
+      state.selectedDate.day,
+    );
+
+    emit(
+      state.copyWith(
+        leaveMap: grouped,
+        events: _buildEventsForDate(selectedKey, map: grouped),
         isHoliday: isHoliday,
         holidayName: holidayName,
         loading: false,
       ),
     );
+  }
+
+  // ===============================
+  // BUILD EVENTS FROM LEAVE MAP
+  // ===============================
+  List<CalendarEvent> _buildEventsForDate(
+    DateTime date, {
+    Map<DateTime, List<LeaveEntity>>? map,
+  }) {
+    final source = map ?? state.leaveMap;
+    final leaves = source[date] ?? [];
+
+    return leaves.map((leave) {
+      return CalendarEvent(
+        title: '${leave.employeeName} – ${leave.leaveType}',
+        subtitle: leave.reason,
+        avatarUrl: leave.employeeAvatar,
+      );
+    }).toList();
   }
 }

@@ -18,13 +18,12 @@ class LeaveRepositoryImpl implements LeaveRepository {
   Future<List<LeaveEntity>> getLeaves() async {
     final rawData = await remote.fetchLeaves();
 
-    // 🔥 Mapping API → Domain Entity (WAJIB)
     return rawData.map<LeaveEntity>((e) => LeaveMapper.fromJson(e)).toList();
   }
 
   @override
   Future<void> createLeave({
-    required int employeeId, // ⬅️ DITAMBAHKAN (WAJIB BACKEND)
+    required int employeeId,
     required String leaveType,
     required DateTime startDate,
     required DateTime endDate,
@@ -33,7 +32,7 @@ class LeaveRepositoryImpl implements LeaveRepository {
     File? attachment,
   }) {
     return remote.createLeave(
-      employeeId: employeeId, // ⬅️ DITERUSKAN KE REMOTE
+      employeeId: employeeId,
       leaveType: leaveType,
       startDate: startDate,
       endDate: endDate,
@@ -62,5 +61,25 @@ class LeaveRepositoryImpl implements LeaveRepository {
   @override
   Future<void> rejectLeave(int leaveId, String note) {
     return remote.rejectLeave(leaveId, note);
+  }
+
+  // ===============================
+  // CALENDAR (NEW)
+  // ===============================
+
+  /// GET approved leave untuk calendar (by month)
+  @override
+  Future<List<LeaveEntity>> getApprovedLeavesByMonth({
+    required DateTime month,
+  }) async {
+    final formattedMonth =
+        '${month.year.toString().padLeft(4, '0')}-'
+        '${month.month.toString().padLeft(2, '0')}';
+
+    final rawData = await remote.fetchApprovedLeavesByMonth(
+      month: formattedMonth,
+    );
+
+    return rawData.map<LeaveEntity>((e) => LeaveMapper.fromJson(e)).toList();
   }
 }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:absensi_karyawan_app/config/constants/app_image.dart';
+
 import '../bloc/otp_cubit.dart';
 import '../bloc/otp_state.dart';
 import '../bloc/otp_purpose.dart';
@@ -108,59 +110,35 @@ class _OtpPageState extends State<OtpPage> {
 
   @override
   Widget build(BuildContext context) {
-    final viewInsets = MediaQuery.of(context).viewInsets;
+    final size = MediaQuery.of(context).size;
 
     return Scaffold(
-      resizeToAvoidBottomInset: true,
+      resizeToAvoidBottomInset: false,
+      backgroundColor: const Color(0xFFF2F2F2),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.only(bottom: viewInsets.bottom),
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          child: Column(
+        child: GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: Stack(
             children: [
-              // ===============================
-              // HEADER / LOGO AREA (AMAN)
-              // ===============================
+              // ================= TOP GRADIENT (SAMA LOGIN) =================
               Container(
-                width: double.infinity,
-                padding: const EdgeInsets.only(top: 32, bottom: 48),
+                height: size.height * 0.42,
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [Color(0xFF624731), Color(0xFF8A6A4F)],
+                    colors: [
+                      Color(0xFF37210E),
+                      Color(0xFF624731),
+                      Color(0xFF957158),
+                    ],
                   ),
-                ),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 16),
-                    Image.asset(
-                      'assets/images/logo.png',
-                      height: 72,
-                      fit: BoxFit.contain,
-                    ),
-                  ],
                 ),
               ),
 
-              // ===============================
-              // CARD OTP
-              // ===============================
-              Container(
-                width: double.infinity,
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                padding: const EdgeInsets.fromLTRB(24, 32, 24, 32),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(32),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.14),
-                      blurRadius: 4,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
+              // ================= CARD =================
+              Align(
+                alignment: Alignment.bottomCenter,
                 child: BlocConsumer<OtpCubit, OtpState>(
                   listener: (context, state) {
                     _submitted = false;
@@ -184,70 +162,120 @@ class _OtpPageState extends State<OtpPage> {
                         c.clear();
                       }
                       _focusNodes.first.requestFocus();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(state.message),
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
+
+                      ScaffoldMessenger.of(context)
+                        ..hideCurrentSnackBar()
+                        ..showSnackBar(
+                          SnackBar(
+                            content: Text(state.message),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
                     }
                   },
                   builder: (context, state) {
                     final isLoading = state is OtpLoading;
 
-                    return Column(
-                      children: [
-                        const Text(
-                          'OTP Verification',
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w700,
+                    return Container(
+                      width: double.infinity,
+                      margin: EdgeInsets.only(
+                        left: 2,
+                        right: 2,
+                        top: size.height * 0.28,
+                        bottom: 16,
+                      ),
+                      padding: const EdgeInsets.fromLTRB(24, 32, 24, 32),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(32),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.14),
+                            blurRadius: 4,
+                            offset: const Offset(0, 4),
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'The code has been sent to ${_maskEmail(widget.email)}',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          const Text(
+                            'OTP Verification',
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 32),
-
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: List.generate(6, _otpBox),
-                        ),
-
-                        const SizedBox(height: 32),
-
-                        SizedBox(
-                          width: double.infinity,
-                          height: 48,
-                          child: ElevatedButton(
-                            onPressed: isLoading ? null : _submitOtp,
-                            child: isLoading
-                                ? const CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  )
-                                : const Text('Verify'),
+                          const SizedBox(height: 8),
+                          Text(
+                            'The code has been sent to ${_maskEmail(widget.email)}',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey,
+                            ),
                           ),
-                        ),
+                          const SizedBox(height: 32),
 
-                        const SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: List.generate(6, _otpBox),
+                          ),
 
-                        TextButton(
-                          onPressed: isLoading ? null : () {},
-                          child: const Text('Resend OTP'),
-                        ),
-                      ],
+                          const SizedBox(height: 32),
+
+                          SizedBox(
+                            width: double.infinity,
+                            height: 48,
+                            child: ElevatedButton(
+                              onPressed: isLoading ? null : _submitOtp,
+                              child: isLoading
+                                  ? const CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    )
+                                  : const Text('Verify'),
+                            ),
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          TextButton(
+                            onPressed: isLoading ? null : () {},
+                            child: const Text('Resend OTP'),
+                          ),
+                        ],
+                      ),
                     );
                   },
                 ),
               ),
 
-              const SizedBox(height: 32),
+              // ================= LOGO FLOATING (SAMA LOGIN) =================
+              Positioned(
+                top: 90,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: Container(
+                    width: 123,
+                    height: 123,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.18),
+                          blurRadius: 6,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.all(8),
+                    child: ClipOval(
+                      child: Image.asset(AppImages.logo, fit: BoxFit.cover),
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ),

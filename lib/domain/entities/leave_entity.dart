@@ -2,6 +2,12 @@ class LeaveEntity {
   final int? id;
   final int? employeeId;
 
+  // ===============================
+  // ✅ TAMBAHAN UNTUK CALENDAR
+  // ===============================
+  final String employeeName;
+  final String employeeAvatar;
+
   /// Jenis cuti (Cuti, Izin, Sakit, dll)
   final String leaveType;
 
@@ -38,6 +44,11 @@ class LeaveEntity {
   const LeaveEntity({
     this.id,
     this.employeeId,
+
+    // ✅ default aman (tidak merusak fitur lama)
+    this.employeeName = '',
+    this.employeeAvatar = '',
+
     required this.leaveType,
     this.startDate,
     this.endDate,
@@ -55,23 +66,15 @@ class LeaveEntity {
   // HELPER (DOMAIN-LEVEL LOGIC)
   // ===============================
 
-  /// Apakah cuti masih menunggu approval
   bool get isPending => status == 'pending';
-
-  /// Apakah cuti sudah disetujui
   bool get isApproved => status == 'approved';
-
-  /// Apakah cuti ditolak
   bool get isRejected => status == 'rejected';
 
-  /// Lama cuti dalam hari (fallback dari date range)
   int get durationInDays {
     if (startDate == null || endDate == null) return totalDays;
-
     return endDate!.difference(startDate!).inDays + 1;
   }
 
-  /// Apakah cuti sudah lewat
   bool get isPast {
     if (endDate == null) return false;
     return endDate!.isBefore(DateTime.now());

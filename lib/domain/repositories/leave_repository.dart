@@ -1,14 +1,16 @@
 import 'dart:io';
 
+import '../entities/leave_entity.dart';
+
 abstract class LeaveRepository {
   // ===============================
   // EMPLOYEE
   // ===============================
 
-  Future<List<dynamic>> getLeaves();
+  Future<List<LeaveEntity>> getLeaves();
 
   Future<void> createLeave({
-    required int employeeId, // ⬅️ WAJIB DITAMBAHKAN
+    required int employeeId,
     required String leaveType,
     required DateTime startDate,
     required DateTime endDate,
@@ -21,9 +23,15 @@ abstract class LeaveRepository {
   // MANAGER / HR
   // ===============================
 
-  Future<List<dynamic>> getPendingLeaves();
+  Future<List<LeaveEntity>> getPendingLeaves();
 
   Future<void> approveLeave(int leaveId, String note);
 
   Future<void> rejectLeave(int leaveId, String note);
+
+  // ===============================
+  // CALENDAR (WAJIB)
+  // ===============================
+
+  Future<List<LeaveEntity>> getApprovedLeavesByMonth({required DateTime month});
 }

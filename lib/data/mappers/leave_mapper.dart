@@ -3,9 +3,13 @@ import '../../domain/entities/leave_entity.dart';
 class LeaveMapper {
   /// Convert API JSON → Domain Entity
   static LeaveEntity fromJson(Map<String, dynamic> json) {
+    final employee = json['employee'] ?? {};
+
     return LeaveEntity(
       id: json['leave_id'] ?? json['id'],
       employeeId: json['employee_id'],
+      employeeName: employee['name'] ?? '',
+      employeeAvatar: employee['avatar'] ?? '',
       leaveType: json['leave_type'] ?? '',
       startDate: _parseDate(json['start_date']),
       endDate: _parseDate(json['end_date']),

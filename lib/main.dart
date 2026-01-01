@@ -73,6 +73,8 @@ import 'data/datasources/remote/auth_remote.dart';
 import 'data/repositories/leave_repository_impl.dart';
 import 'data/datasources/remote/leave_remote.dart';
 
+import 'domain/repositories/leave_repository.dart';
+
 // ===============================
 // DATA - ATTENDANCE
 // ===============================
@@ -211,7 +213,8 @@ class AbsensiApp extends StatelessWidget {
         // REPOSITORIES
         // ===============================
         RepositoryProvider<AuthRepositoryImpl>.value(value: authRepository),
-        RepositoryProvider<LeaveRepositoryImpl>.value(value: leaveRepository),
+        RepositoryProvider<LeaveRepository>.value(value: leaveRepository),
+
         RepositoryProvider<AttendanceRepository>.value(
           value: attendanceRepository,
         ),

@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../../domain/entities/leave_entity.dart';
 
 class CalendarEvent {
   final String title;
@@ -20,7 +21,7 @@ class CalendarState extends Equatable {
   final DateTime selectedDate;
 
   // ===============================
-  // MONTH & YEAR CONTROL (ANTI CRASH)
+  // MONTH & YEAR CONTROL
   // ===============================
   final int selectedYear;
   final int selectedMonth;
@@ -38,6 +39,11 @@ class CalendarState extends Equatable {
   final bool isHoliday;
   final String? holidayName;
 
+  // ===============================
+  // ✅ LEAVE DATA (WAJIB UNTUK CALENDAR)
+  // ===============================
+  final Map<DateTime, List<LeaveEntity>> leaveMap;
+
   const CalendarState({
     required this.focusedMonth,
     required this.selectedDate,
@@ -48,6 +54,7 @@ class CalendarState extends Equatable {
     this.loading = false,
     this.isHoliday = false,
     this.holidayName,
+    this.leaveMap = const {}, // ✅ default aman
   });
 
   // ===============================
@@ -67,6 +74,7 @@ class CalendarState extends Equatable {
       loading: false,
       isHoliday: false,
       holidayName: null,
+      leaveMap: const {}, // ✅ init
     );
   }
 
@@ -83,6 +91,7 @@ class CalendarState extends Equatable {
     bool? loading,
     bool? isHoliday,
     String? holidayName,
+    Map<DateTime, List<LeaveEntity>>? leaveMap,
   }) {
     return CalendarState(
       focusedMonth: focusedMonth ?? this.focusedMonth,
@@ -93,7 +102,8 @@ class CalendarState extends Equatable {
       events: events ?? this.events,
       loading: loading ?? this.loading,
       isHoliday: isHoliday ?? this.isHoliday,
-      holidayName: holidayName,
+      holidayName: holidayName ?? this.holidayName,
+      leaveMap: leaveMap ?? this.leaveMap,
     );
   }
 
@@ -108,5 +118,6 @@ class CalendarState extends Equatable {
     loading,
     isHoliday,
     holidayName,
+    leaveMap, // ✅ WAJIB
   ];
 }

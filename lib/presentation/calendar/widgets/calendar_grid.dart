@@ -5,7 +5,7 @@ import '../bloc/calendar_cubit.dart';
 import '../bloc/calendar_state.dart';
 import 'calendar_day_cell.dart';
 
-// 🔥 HR HOLIDAY
+// 🔥 HOLIDAY
 import '../../../data/datasources/local/holiday_local.dart';
 import '../../../core/utils/holiday_utils.dart';
 
@@ -31,6 +31,7 @@ class CalendarGrid extends StatelessWidget {
           0,
         ).day;
 
+        // Sunday = 0, Monday = 1 ...
         final startWeekday = firstDayOfMonth.weekday % 7;
 
         return Container(
@@ -50,9 +51,9 @@ class CalendarGrid extends StatelessWidget {
               // ===============================
               // DAY HEADER
               // ===============================
-              Row(
+              const Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
+                children: [
                   _DayLabel("Su", isSunday: true),
                   _DayLabel("Mo"),
                   _DayLabel("Tu"),
@@ -78,11 +79,13 @@ class CalendarGrid extends StatelessWidget {
                   crossAxisSpacing: 4,
                 ),
                 itemBuilder: (context, index) {
+                  // EMPTY CELL (OFFSET)
                   if (index < startWeekday) {
                     return const SizedBox();
                   }
 
                   final day = index - startWeekday + 1;
+
                   final date = DateTime(
                     focusedMonth.year,
                     focusedMonth.month,
@@ -96,12 +99,28 @@ class CalendarGrid extends StatelessWidget {
                     HolidayLocal.holidays,
                   );
 
+                  // 🔥 AMBIL LEAVE DI TANGGAL INI
+                  final leaves = state.leaveMap[date] ?? [];
+
                   return CalendarDayCell(
                     date: date,
                     isSelected: isSelected,
                     isHoliday: isHoliday,
                     size: 28,
                     fontSize: 12,
+
+                    // ===============================
+                    // 🔥 KUNCI UPGRADE
+                    // ===============================
+                    avatarUrls: leaves
+                        .map((e) => e.employeeAvatar)
+                        .where((e) => e.isNotEmpty)
+                        .toList(),
+
+                    leaveTypes: leaves.map((e) => e.leaveType).toList(),
+
+                    hasEvent: leaves.isNotEmpty,
+
                     onTap: () => context.read<CalendarCubit>().selectDate(date),
                   );
                 },
@@ -114,10 +133,10 @@ class CalendarGrid extends StatelessWidget {
   }
 
   // ===============================
-  // MONTH & YEAR SELECTOR (FIXED)
+  // MONTH & YEAR SELECTOR
   // ===============================
   Widget _buildMonthYearSelector(BuildContext context, CalendarState state) {
-    final months = const [
+    const months = [
       "Jan",
       "Feb",
       "Mar",
@@ -143,7 +162,6 @@ class CalendarGrid extends StatelessWidget {
           onPressed: () => context.read<CalendarCubit>().previousMonth(),
         ),
 
-        // MONTH DROPDOWN
         DropdownButton<int>(
           value: state.selectedMonth,
           underline: const SizedBox(),
@@ -162,7 +180,6 @@ class CalendarGrid extends StatelessWidget {
 
         const SizedBox(width: 4),
 
-        // YEAR DROPDOWN
         DropdownButton<int>(
           value: state.selectedYear,
           underline: const SizedBox(),

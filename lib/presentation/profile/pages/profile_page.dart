@@ -166,7 +166,6 @@ class _ProfilePageState extends State<ProfilePage> {
               _menuItem(
                 icon: Icons.logout,
                 title: "Log Out",
-                color: Colors.red,
                 onTap: _showLogoutDialog,
               ),
             ],
@@ -349,7 +348,7 @@ class _ProfilePageState extends State<ProfilePage> {
               context.read<AuthCubit>().logout();
               context.go('/login');
             },
-            child: const Text("Logout", style: TextStyle(color: Colors.white)),
+            child: const Text("Logout", style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
