@@ -82,7 +82,7 @@ class _ProfilePageState extends State<ProfilePage> {
       context: context,
       initialDate: initialDate,
       firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
+      lastDate: DateTime(2100),
     );
 
     if (picked != null) {
