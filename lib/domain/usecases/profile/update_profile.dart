@@ -18,6 +18,7 @@ class UpdateProfile {
 
     // 🔥 PHONE NUMBER (STRING)
     String? phoneNumber,
+    String? birthDate,
   }) async {
     // ===============================
     // VALIDASI BUSINESS LOGIC
@@ -46,6 +47,7 @@ class UpdateProfile {
 
       // 🔥 PHONE NUMBER (NANTI API PAKAI)
       phoneNumber: phoneNumber,
+      birthDate: birthDate,
     );
 
     return updatedUser;

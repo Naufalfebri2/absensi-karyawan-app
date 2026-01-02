@@ -14,6 +14,7 @@ abstract class ProfileRepository {
 
     // 🔥 PHONE NUMBER (STRING)
     String? phoneNumber,
+    String? birthDate,
   });
 
   // ===============================

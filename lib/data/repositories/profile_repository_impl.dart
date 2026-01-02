@@ -20,6 +20,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
 
     // 🔥 PHONE NUMBER (STRING)
     String? phoneNumber,
+    String? birthDate,
   }) async {
     final response = await remote.updateProfile(
       userId: userId,
@@ -30,6 +31,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
 
       // 🔥 PASS TO REMOTE (API NANTI)
       phoneNumber: phoneNumber,
+      birthDate: birthDate,
     );
 
     return UserMapper.fromJson(response);

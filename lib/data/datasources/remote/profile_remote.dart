@@ -19,6 +19,7 @@ class ProfileRemote {
 
     // 🔥 PHONE NUMBER (STRING)
     String? phoneNumber,
+    String? birthDate,
   }) async {
     try {
       // ===============================
@@ -36,8 +37,13 @@ class ProfileRemote {
       if (phoneNumber != null) {
         payload['phone_number'] = phoneNumber;
       }
+      
+      // 🔥 KIRIM BIRTH DATE JIKA ADA
+      if (birthDate != null) {
+        payload['birth_date'] = birthDate;
+      }
 
-      final response = await dio.put(
+      final response = await dio.post(
         ApiEndpoint.profile,
         data: payload,
         options: Options(headers: {'Accept': 'application/json'}),

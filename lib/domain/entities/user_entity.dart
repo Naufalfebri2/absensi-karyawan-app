@@ -8,6 +8,9 @@ class UserEntity {
   // 🔥 PHONE NUMBER (STRING)
   final String? phoneNumber;
 
+  // 🔥 BIRTH DATE
+  final String? birthDate;
+
   // 🔥 AVATAR
   final String? avatarUrl;
 
@@ -18,6 +21,7 @@ class UserEntity {
     required this.position,
     required this.department,
     this.phoneNumber,
+    this.birthDate,
     this.avatarUrl,
   });
 
@@ -31,6 +35,7 @@ class UserEntity {
     String? position,
     String? department,
     String? phoneNumber,
+    String? birthDate,
     String? avatarUrl,
   }) {
     return UserEntity(
@@ -40,6 +45,7 @@ class UserEntity {
       position: position ?? this.position,
       department: department ?? this.department,
       phoneNumber: phoneNumber ?? this.phoneNumber,
+      birthDate: birthDate ?? this.birthDate,
       avatarUrl: avatarUrl ?? this.avatarUrl,
     );
   }

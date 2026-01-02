@@ -50,6 +50,48 @@ class _ProfilePageState extends State<ProfilePage> {
     birthC.dispose();
     aadhaarC.dispose();
     super.dispose();
+    super.dispose();
+  }
+
+  // ===============================
+  // HELPERS
+  // ===============================
+  void _enterEditMode() {
+    final authState = context.read<AuthCubit>().state;
+    if (authState is AuthAuthenticated) {
+      final user = authState.user;
+      nameC.text = ''; // user.name; // User requested no auto-fill
+      emailC.text = user.email;
+      phoneC.text = ''; // user.phoneNumber ?? ''; // User requested no auto-fill
+      rollC.text = user.position;
+      aadhaarC.text = user.department;
+      birthC.text = user.birthDate ?? '';
+    }
+    setState(() => _mode = ProfileViewMode.edit);
+  }
+
+  Future<void> _selectDate() async {
+    DateTime initialDate = DateTime.now();
+    if (birthC.text.isNotEmpty) {
+      try {
+        initialDate = DateTime.parse(birthC.text);
+      } catch (_) {}
+    }
+
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+
+    if (picked != null) {
+      // Format: YYYY-MM-DD
+      final formatted = "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
+      setState(() {
+        birthC.text = formatted;
+      });
+    }
   }
 
   // ===============================
@@ -108,70 +150,86 @@ class _ProfilePageState extends State<ProfilePage> {
   // ===============================
   // MAIN PROFILE VIEW (FINAL)
   // ===============================
+  // ===============================
+  // MAIN PROFILE VIEW (FINAL)
+  // ===============================
   Widget _buildProfileMain() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          const SizedBox(height: 16),
-          const CircleAvatar(
-            radius: 48,
-            backgroundImage: AssetImage('assets/images/logo.png'),
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            "John Smith",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 24),
+    return BlocBuilder<AuthCubit, AuthState>(
+      builder: (context, state) {
+        if (state is! AuthAuthenticated) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-          _profileCard(
-            title: "Account Setting",
+        final user = state.user;
+        final avatarImage = (user.avatarUrl != null && user.avatarUrl!.isNotEmpty)
+            ? NetworkImage(user.avatarUrl!)
+            : const AssetImage('assets/images/logo.png') as ImageProvider;
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
             children: [
-              _menuItem(
-                icon: Icons.person_outline,
-                title: "Edit Profile",
-                onTap: () => setState(() => _mode = ProfileViewMode.edit),
+              const SizedBox(height: 16),
+              CircleAvatar(
+                radius: 48,
+                backgroundImage: avatarImage,
               ),
-              _menuItem(icon: Icons.lock_outline, title: "Security & Privacy"),
+              const SizedBox(height: 12),
+              Text(
+                user.name,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 24),
+
+              _profileCard(
+                title: "Account Setting",
+                children: [
+                  _menuItem(
+                    icon: Icons.person_outline,
+                    title: "Edit Profile",
+                    onTap: _enterEditMode,
+                  ),
+                  _menuItem(icon: Icons.lock_outline, title: "Security & Privacy"),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              _profileCard(
+                title: "Notification Setting",
+                children: [
+                  _switchItem(
+                    title: "Push Notification",
+                    value: _pushNotificationEnabled,
+                    onChanged: (val) =>
+                        setState(() => _pushNotificationEnabled = val),
+                  ),
+                  _switchItem(
+                    title: "App Update",
+                    value: _appUpdateEnabled,
+                    onChanged: (val) => setState(() => _appUpdateEnabled = val),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              _profileCard(
+                title: "More",
+                children: [
+                  _menuItem(icon: Icons.help_outline, title: "Help"),
+                  _menuItem(icon: Icons.info_outline, title: "About App"),
+                  _menuItem(
+                    icon: Icons.logout,
+                    title: "Log Out",
+                    onTap: _showLogoutDialog,
+                  ),
+                ],
+              ),
             ],
           ),
-
-          const SizedBox(height: 16),
-
-          _profileCard(
-            title: "Notification Setting",
-            children: [
-              _switchItem(
-                title: "Push Notification",
-                value: _pushNotificationEnabled,
-                onChanged: (val) =>
-                    setState(() => _pushNotificationEnabled = val),
-              ),
-              _switchItem(
-                title: "App Update",
-                value: _appUpdateEnabled,
-                onChanged: (val) => setState(() => _appUpdateEnabled = val),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 16),
-
-          _profileCard(
-            title: "More",
-            children: [
-              _menuItem(icon: Icons.help_outline, title: "Help"),
-              _menuItem(icon: Icons.info_outline, title: "About App"),
-              _menuItem(
-                icon: Icons.logout,
-                title: "Log Out",
-                onTap: _showLogoutDialog,
-              ),
-            ],
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -222,19 +280,107 @@ class _ProfilePageState extends State<ProfilePage> {
               child: CircleAvatar(radius: 65, backgroundImage: avatarImage),
             ),
             const SizedBox(height: 24),
-            _field("Name", nameC),
-            _field("Email", emailC),
-            _field("Phone Number", phoneC),
-            _field("Position", rollC),
-            _field("Date of Birth", birthC),
-            _field("Department", aadhaarC),
+            
+            // NAME
+            _field(
+              "Name",
+              nameC,
+              validator: (val) => val == null || val.isEmpty ? "Required" : null,
+            ),
+            
+            // EMAIL
+            _field(
+              "Email",
+              emailC,
+              validator: (val) {
+                 if (val == null || val.isEmpty) return "Required";
+                 if (!val.contains('@')) return "Invalid email";
+                 return null;
+              },
+              keyboardType: TextInputType.emailAddress,
+            ),
+            
+            // PHONE
+            _field(
+              "Phone Number",
+              phoneC,
+              validator: (val) => val == null || val.isEmpty ? "Required" : null,
+              keyboardType: TextInputType.phone,
+            ),
+            
+            // POSITION (Dropdown)
+             Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text("Position"),
+                const SizedBox(height: 6),
+                DropdownButtonFormField<String>(
+                  value: rollC.text.isNotEmpty && ['Staff', 'Manager'].contains(rollC.text) ? rollC.text : null,
+                  items: const [
+                    DropdownMenuItem(value: "Staff", child: Text("Staff")),
+                    DropdownMenuItem(value: "Manager", child: Text("Manager")),
+                  ],
+                  onChanged: (val) {
+                    setState(() {
+                      rollC.text = val ?? "";
+                    });
+                  },
+                  validator: (val) => val == null || val.isEmpty ? "Required" : null,
+                  decoration: InputDecoration(
+                    hintText: "Select Position",
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+            
+            // DEPARTMENT (Dropdown)
+             Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text("Department"),
+                const SizedBox(height: 6),
+                DropdownButtonFormField<String>(
+                  value: aadhaarC.text.isNotEmpty && ['IT'].contains(aadhaarC.text) ? aadhaarC.text : null,
+                  items: const [
+                    DropdownMenuItem(value: "IT", child: Text("IT")),
+                  ],
+                  onChanged: (val) {
+                    setState(() {
+                      aadhaarC.text = val ?? "";
+                    });
+                  },
+                  validator: (val) => val == null || val.isEmpty ? "Required" : null,
+                  decoration: InputDecoration(
+                    hintText: "Select Department",
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+            
+            // BIRTH DATE
+            _field(
+              "Date of Birth",
+              birthC,
+              readOnly: true,
+              onTap: _selectDate,
+              validator: (val) => val == null || val.isEmpty ? "Required" : null,
+              keyboardType: TextInputType.datetime,
+              suffixIcon: const Icon(Icons.calendar_month),
+            ),
+            
             const SizedBox(height: 24),
             SizedBox(
               width: MediaQuery.of(context).size.width * 0.75,
               height: 48,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary, // coklat
+                  backgroundColor: AppColors.primary,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(24),
                   ),
@@ -242,21 +388,26 @@ class _ProfilePageState extends State<ProfilePage> {
                 onPressed: isLoading
                     ? null
                     : () {
-                        context.read<ProfileCubit>().updateProfile(
-                          name: nameC.text,
-                          email: emailC.text,
-                          phoneNumber: phoneC.text,
-                          position: rollC.text,
-                          department: aadhaarC.text,
-                        );
+                        if (_formKey.currentState!.validate()) {
+                          context.read<ProfileCubit>().updateProfile(
+                                name: nameC.text,
+                                email: emailC.text,
+                                phoneNumber: phoneC.text,
+                                position: rollC.text,
+                                department: aadhaarC.text,
+                                birthDate: birthC.text,
+                              );
+                        }
                       },
-                child: const Text(
-                  "Save changes",
-                  style: TextStyle(
-                    color: Colors.white, // ✅ FIX DI SINI
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                child: isLoading 
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : const Text(
+                      "Save changes",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
               ),
             ),
           ],
@@ -270,8 +421,21 @@ class _ProfilePageState extends State<ProfilePage> {
   // ===============================
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ProfileCubit, ProfileState>(
-      builder: (context, state) {
+    return BlocListener<ProfileCubit, ProfileState>(
+      listener: (context, state) {
+        if (state is ProfileUpdateSuccess) {
+           ScaffoldMessenger.of(context).showSnackBar(
+             const SnackBar(content: Text("Profile updated successfully")),
+           );
+           setState(() => _mode = ProfileViewMode.main);
+        } else if (state is ProfileError) {
+           ScaffoldMessenger.of(context).showSnackBar(
+             SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+           );
+        }
+      },
+      child: BlocBuilder<ProfileCubit, ProfileState>(
+        builder: (context, state) {
         return Scaffold(
           backgroundColor: AppColors.background,
           body: SafeArea(
@@ -288,6 +452,7 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         );
       },
+      ),
     );
   }
 
@@ -320,13 +485,36 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _field(String label, TextEditingController c) {
+  Widget _field(
+    String label,
+    TextEditingController c, {
+    bool readOnly = false,
+    VoidCallback? onTap,
+    String? Function(String?)? validator,
+    TextInputType? keyboardType,
+    Widget? suffixIcon,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label),
         const SizedBox(height: 6),
-        TextFormField(controller: c),
+        TextFormField(
+          controller: c,
+          readOnly: readOnly,
+          onTap: onTap,
+          validator: validator,
+          keyboardType: keyboardType,
+          decoration: InputDecoration(
+            hintText: "Enter $label",
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
+            suffixIcon: suffixIcon,
+          ),
+        ),
         const SizedBox(height: 16),
       ],
     );

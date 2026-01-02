@@ -20,6 +20,13 @@ class UserMapper {
           json['telp'] ??
           '',
 
+      // 🔥 BIRTH DATE
+      birthDate:
+          json['birth_date'] ??
+          json['dob'] ??
+          json['tgl_lahir'] ??
+          json['date_of_birth'],
+
       // 🔥 AVATAR
       avatarUrl:
           json['avatar_url'] ??
@@ -39,6 +46,9 @@ class UserMapper {
 
       // 🔥 PHONE NUMBER
       'phone_number': user.phoneNumber,
+
+      // 🔥 BIRTH DATE
+      'birth_date': user.birthDate,
 
       // 🔥 AVATAR
       'avatar_url': user.avatarUrl,

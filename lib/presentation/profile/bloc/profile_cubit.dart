@@ -40,6 +40,7 @@ class ProfileCubit extends Cubit<ProfileState> {
     required String phoneNumber, // ✅ TAMBAH
     required String position,
     required String department,
+    required String birthDate,
   }) async {
     emit(ProfileLoading());
 
@@ -60,6 +61,7 @@ class ProfileCubit extends Cubit<ProfileState> {
         phoneNumber: phoneNumber, // ✅ KIRIM KE USECASE
         position: position,
         department: department,
+        birthDate: birthDate,
       );
 
       // 🔥 UPDATE GLOBAL AUTH STATE
@@ -72,6 +74,7 @@ class ProfileCubit extends Cubit<ProfileState> {
           'phone_number': updatedUser.phoneNumber, // ✅ SIMPAN
           'position': updatedUser.position,
           'department': updatedUser.department,
+          'birth_date': updatedUser.birthDate,
           'avatar_url': currentUser.avatarUrl, // tetap
         },
       );
