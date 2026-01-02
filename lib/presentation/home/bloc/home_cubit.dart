@@ -77,7 +77,7 @@ class HomeCubit extends Cubit<HomeState> {
     );
 
     _gpsTimer?.cancel();
-    _gpsTimer = Timer.periodic(const Duration(seconds: 1000), (_) async {
+    _gpsTimer = Timer.periodic(const Duration(seconds: 10), (_) async {
       await _updateGps();
       _emitHomeState(DateTime.now());
     });
@@ -185,13 +185,18 @@ class HomeCubit extends Cubit<HomeState> {
     bool canCheckOut = false;
     String? restrictionMessage;
 
+    // 🔥 GUARD CLAUSES (Priority Order)
     if (_gpsErrorMessage != null) {
       restrictionMessage = 'GPS is not available';
     } else if (_hasCheckedOut) {
       restrictionMessage = 'You have already checked out today';
     } else if (isHoliday) {
       restrictionMessage = 'National holiday: $holidayName';
+    } else if (!isWithinOfficeRadius) {
+       // 🔒 NEW: Block check-in if outside radius
+       restrictionMessage = 'You are outside the office radius';
     } else {
+      // ✅ VALID STATE (Inside Radius, Not Holiday, GPS OK)
       if (!_hasCheckedIn) {
         canCheckIn = true;
 
@@ -212,10 +217,6 @@ class HomeCubit extends Cubit<HomeState> {
           restrictionMessage = 'It is not time to check out yet';
         }
       }
-    }
-
-    if (!isWithinOfficeRadius && restrictionMessage == null) {
-      restrictionMessage = 'You are outside the office radius';
     }
 
     emit(

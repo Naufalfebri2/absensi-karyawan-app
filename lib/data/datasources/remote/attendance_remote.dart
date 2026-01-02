@@ -57,16 +57,28 @@ class AttendanceRemote {
       // 🔹 Tidak ada data
       if (data == null) return null;
 
+      AttendanceEntity? entity;
+
       // 🔹 API mengembalikan LIST
       if (data is List) {
         if (data.isEmpty) return null;
-
-        return AttendanceEntity.fromJson(Map<String, dynamic>.from(data.first));
+        entity = AttendanceEntity.fromJson(Map<String, dynamic>.from(data.first));
+      }
+      // 🔹 API mengembalikan OBJECT
+      else if (data is Map) {
+         entity = AttendanceEntity.fromJson(Map<String, dynamic>.from(data));
       }
 
-      // 🔹 API mengembalikan OBJECT
-      if (data is Map) {
-        return AttendanceEntity.fromJson(Map<String, dynamic>.from(data));
+      if (entity != null) {
+        final now = DateTime.now();
+        // 🔒 STRICT VALIDATION: Check if record is actually from TODAY
+        final isToday = entity.date.year == now.year &&
+            entity.date.month == now.month &&
+            entity.date.day == now.day;
+
+        if (isToday) {
+          return entity;
+        }
       }
 
       return null;

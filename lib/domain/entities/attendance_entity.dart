@@ -63,7 +63,11 @@ class AttendanceEntity {
   // ===============================
   factory AttendanceEntity.fromJson(Map<String, dynamic> json) {
     return AttendanceEntity(
-      date: DateTime.now(), // API belum kirim tanggal
+      // 🔹 Fix: Parse date from API, fallback to EPOCH if missing.
+      // ⚠️ DO NOT fallback to DateTime.now() because that bypasses validation!
+      date: json['date'] != null
+          ? DateTime.tryParse(json['date']) ?? DateTime.fromMillisecondsSinceEpoch(0)
+          : DateTime.fromMillisecondsSinceEpoch(0),
       status: _parseStatus(json['status']),
       checkInTime: _formatTime(json['time_checkin']),
       checkOutTime: _formatTime(json['time_checkout']),
