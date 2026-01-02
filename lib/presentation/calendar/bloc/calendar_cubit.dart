@@ -37,7 +37,9 @@ class CalendarCubit extends Cubit<CalendarState> {
   // ===============================
   List<int> _generateYears() {
     final currentYear = DateTime.now().year;
-    return List.generate(currentYear - 1990 + 1, (i) => 1990 + i);
+    // Extend to future years (e.g. current + 4)
+    final endYear = currentYear + 4;
+    return List.generate(endYear - 1990 + 1, (i) => 1990 + i);
   }
 
   // ===============================
@@ -83,8 +85,14 @@ class CalendarCubit extends Cubit<CalendarState> {
   // ===============================
   // SELECT DATE
   // ===============================
+  // ===============================
+  // SELECT DATE
+  // ===============================
   void selectDate(DateTime date) {
     final key = DateTime(date.year, date.month, date.day);
+
+    final isHoliday = HolidayUtils.isHoliday(date, HolidayLocal.holidays);
+    final holidayName = HolidayUtils.getHolidayName(date, HolidayLocal.holidays);
 
     emit(
       state.copyWith(
@@ -93,6 +101,8 @@ class CalendarCubit extends Cubit<CalendarState> {
         selectedMonth: date.month,
         focusedMonth: DateTime(date.year, date.month),
         events: _buildEventsForDate(key),
+        isHoliday: isHoliday,
+        holidayName: holidayName,
       ),
     );
   }
@@ -103,10 +113,13 @@ class CalendarCubit extends Cubit<CalendarState> {
   Future<void> loadMonth(DateTime month) async {
     emit(state.copyWith(loading: true));
 
-    final isHoliday = HolidayUtils.isHoliday(month, HolidayLocal.holidays);
-
+    // Calculate holiday for the CURRENTLY selected date (or the new one if logic implies)
+    // Here we use state.selectedDate because loadMonth might be called when changing pages
+    // but the selection might stay.
+    final currentSelected = state.selectedDate;
+    final isHoliday = HolidayUtils.isHoliday(currentSelected, HolidayLocal.holidays);
     final holidayName = HolidayUtils.getHolidayName(
-      month,
+      currentSelected,
       HolidayLocal.holidays,
     );
 
