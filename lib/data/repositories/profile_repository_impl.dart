@@ -10,6 +10,9 @@ class ProfileRepositoryImpl implements ProfileRepository {
 
   ProfileRepositoryImpl(this.remote);
 
+  // ===============================
+  // UPDATE PROFILE (TEXT DATA)
+  // ===============================
   @override
   Future<UserEntity> updateProfile({
     required int userId,
@@ -17,24 +20,24 @@ class ProfileRepositoryImpl implements ProfileRepository {
     required String email,
     required String position,
     required String department,
-
-    // 🔥 PHONE NUMBER (STRING)
     String? phoneNumber,
     String? birthDate,
   }) async {
-    final response = await remote.updateProfile(
+    // 🔥 API HANYA UPDATE, TIDAK RETURN USER
+    await remote.updateProfile(
       userId: userId,
       name: name,
       email: email,
       position: position,
       department: department,
-
-      // 🔥 PASS TO REMOTE (API NANTI)
       phoneNumber: phoneNumber,
       birthDate: birthDate,
     );
 
-    return UserMapper.fromJson(response);
+    // 🔥 SOURCE OF TRUTH = GET PROFILE
+    final profileResponse = await remote.getProfile();
+
+    return UserMapper.fromJson(profileResponse);
   }
 
   // ===============================
@@ -44,6 +47,11 @@ class ProfileRepositoryImpl implements ProfileRepository {
   Future<String> updateLogo({required int userId, required File image}) async {
     final response = await remote.updateLogo(userId: userId, image: image);
 
-    return response['avatar_url'] as String;
+    // 🔥 HANDLE RESPONSE DENGAN AMAN
+    if (response['data'] != null && response['data']['photo_profile'] != null) {
+      return response['data']['photo_profile'] as String;
+    }
+
+    throw Exception('Gagal memperbarui avatar');
   }
 }

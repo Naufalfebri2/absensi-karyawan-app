@@ -10,21 +10,16 @@ class ProfileRemote {
   // ===============================
   // UPDATE PROFILE DATA
   // ===============================
-  Future<Map<String, dynamic>> updateProfile({
+  Future<void> updateProfile({
     required int userId,
     required String name,
     required String email,
     required String position,
     required String department,
-
-    // 🔥 PHONE NUMBER (STRING)
     String? phoneNumber,
     String? birthDate,
   }) async {
     try {
-      // ===============================
-      // BUILD PAYLOAD (AMAN & DINAMIS)
-      // ===============================
       final payload = <String, dynamic>{
         'user_id': userId,
         'name': name,
@@ -33,13 +28,11 @@ class ProfileRemote {
         'department': department,
       };
 
-      // 🔥 KIRIM PHONE JIKA ADA
-      if (phoneNumber != null) {
+      if (phoneNumber != null && phoneNumber.isNotEmpty) {
         payload['phone_number'] = phoneNumber;
       }
-      
-      // 🔥 KIRIM BIRTH DATE JIKA ADA
-      if (birthDate != null) {
+
+      if (birthDate != null && birthDate.isNotEmpty) {
         payload['birth_date'] = birthDate;
       }
 
@@ -49,7 +42,14 @@ class ProfileRemote {
         options: Options(headers: {'Accept': 'application/json'}),
       );
 
-      return Map<String, dynamic>.from(response.data['data']);
+      final data = response.data;
+
+      // 🔥 VALIDASI RESPONSE
+      if (data is Map && data['status'] == true) {
+        return;
+      }
+
+      throw Exception(data['message'] ?? 'Gagal update profile');
     } on DioException catch (e) {
       throw Exception(e.response?.data?['message'] ?? 'Gagal update profile');
     }
@@ -74,18 +74,47 @@ class ProfileRemote {
       final response = await dio.post(
         '${ApiEndpoint.profile}/avatar',
         data: formData,
+        options: Options(
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'multipart/form-data',
+          },
+        ),
+      );
+
+      final data = response.data;
+
+      if (data is Map && data['status'] == true && data['data'] is Map) {
+        return Map<String, dynamic>.from(data['data']);
+      }
+
+      throw Exception(data['message'] ?? 'Gagal upload avatar');
+    } on DioException catch (e) {
+      throw Exception(e.response?.data?['message'] ?? 'Gagal upload avatar');
+    }
+  }
+
+  // ===============================
+  // GET PROFILE (SOURCE OF TRUTH)
+  // ===============================
+  Future<Map<String, dynamic>> getProfile() async {
+    try {
+      final response = await dio.get(
+        ApiEndpoint.profile,
         options: Options(headers: {'Accept': 'application/json'}),
       );
 
       final data = response.data;
 
-      if (data is Map && data['data'] is Map) {
+      if (data is Map && data['status'] == true && data['data'] is Map) {
         return Map<String, dynamic>.from(data['data']);
       }
 
-      throw Exception('Format response avatar tidak valid');
+      throw Exception(data['message'] ?? 'Gagal mengambil data profile');
     } on DioException catch (e) {
-      throw Exception(e.response?.data?['message'] ?? 'Gagal upload logo');
+      throw Exception(
+        e.response?.data?['message'] ?? 'Gagal mengambil data profile',
+      );
     }
   }
 }

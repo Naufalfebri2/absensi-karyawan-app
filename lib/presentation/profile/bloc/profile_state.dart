@@ -15,7 +15,7 @@ abstract class ProfileState extends Equatable {
 class ProfileInitial extends ProfileState {}
 
 /// ===============================
-/// LOADING
+/// LOADING (GLOBAL PROFILE)
 /// ===============================
 class ProfileLoading extends ProfileState {}
 
@@ -34,6 +34,7 @@ class ProfileLoaded extends ProfileState {
 /// ===============================
 /// UPDATE SUCCESS
 /// ===============================
+/// Dipakai jika ingin trigger UI feedback (snackbar / toast)
 class ProfileUpdateSuccess extends ProfileState {
   final UserEntity user;
 
@@ -58,6 +59,7 @@ class ProfileError extends ProfileState {
 /// ===============================
 /// OPTIMISTIC AVATAR
 /// ===============================
+/// Avatar preview dari device, user data tetap dipegang UI
 class ProfileAvatarOptimistic extends ProfileState {
   final File avatarFile;
 
@@ -65,4 +67,17 @@ class ProfileAvatarOptimistic extends ProfileState {
 
   @override
   List<Object?> get props => [avatarFile];
+}
+
+/// ===============================
+/// AVATAR UPLOADING (OPTIONAL)
+/// ===============================
+/// Bisa dipakai jika UI ingin tampilkan progress khusus avatar
+class ProfileAvatarUploading extends ProfileState {
+  final UserEntity user;
+
+  const ProfileAvatarUploading(this.user);
+
+  @override
+  List<Object?> get props => [user];
 }

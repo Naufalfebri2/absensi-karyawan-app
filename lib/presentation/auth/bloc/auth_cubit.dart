@@ -45,8 +45,9 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   /// ===============================
-  /// SET AUTH AFTER LOGIN / UPDATE
+  /// SET AUTH (LOGIN / FULL RESET)
   /// ===============================
+  /// Dipakai untuk LOGIN, REGISTER, atau REFRESH SESSION
   Future<void> setAuthenticated({
     required String token,
     required Map<String, dynamic> user,
@@ -54,26 +55,42 @@ class AuthCubit extends Cubit<AuthState> {
     emit(AuthLoading());
 
     try {
-      // 🔥 NORMALISASI USER MAP (INJECT PHONE)
-      final normalizedUser = {
-        ...user,
-        'phone_number':
-            user['phone_number'] ??
-            user['phone'] ??
-            user['mobile'] ??
-            user['no_hp'] ??
-            user['telp'],
-      };
+      final normalizedUser = _normalizeUser(user);
 
       final userEntity = UserMapper.fromJson(normalizedUser);
 
-      // 🔥 SIMPAN KE STORAGE (SUDAH KONSISTEN)
       await storage.saveAccessToken(token);
       await storage.saveUser(normalizedUser);
 
       emit(AuthAuthenticated(token: token, user: userEntity));
     } catch (_) {
       emit(AuthUnauthenticated());
+    }
+  }
+
+  /// ===============================
+  /// UPDATE USER (PROFILE / AVATAR)
+  /// ===============================
+  /// 🔥 TIDAK RESET AUTH STATE
+  /// 🔥 TIDAK EMIT AuthLoading
+  Future<void> updateUser(UserEntity updatedUser) async {
+    final currentState = state;
+
+    if (currentState is! AuthAuthenticated) return;
+
+    try {
+      final normalizedUser = _normalizeUser(updatedUser.toJson());
+
+      await storage.saveUser(normalizedUser);
+
+      emit(
+        AuthAuthenticated(
+          token: currentState.token,
+          user: UserMapper.fromJson(normalizedUser),
+        ),
+      );
+    } catch (_) {
+      // ❗ Tidak logout user hanya karena update profile gagal
     }
   }
 
@@ -88,5 +105,20 @@ class AuthCubit extends Cubit<AuthState> {
     } catch (_) {}
 
     emit(AuthUnauthenticated());
+  }
+
+  /// ===============================
+  /// NORMALIZE USER MAP
+  /// ===============================
+  Map<String, dynamic> _normalizeUser(Map<String, dynamic> user) {
+    return {
+      ...user,
+      'phone_number':
+          user['phone_number'] ??
+          user['phone'] ??
+          user['mobile'] ??
+          user['no_hp'] ??
+          user['telp'],
+    };
   }
 }

@@ -50,7 +50,6 @@ class _ProfilePageState extends State<ProfilePage> {
     birthC.dispose();
     aadhaarC.dispose();
     super.dispose();
-    super.dispose();
   }
 
   // ===============================
@@ -62,7 +61,8 @@ class _ProfilePageState extends State<ProfilePage> {
       final user = authState.user;
       nameC.text = ''; // user.name; // User requested no auto-fill
       emailC.text = user.email;
-      phoneC.text = ''; // user.phoneNumber ?? ''; // User requested no auto-fill
+      phoneC.text =
+          ''; // user.phoneNumber ?? ''; // User requested no auto-fill
       rollC.text = user.position;
       aadhaarC.text = user.department;
       birthC.text = user.birthDate ?? '';
@@ -87,7 +87,8 @@ class _ProfilePageState extends State<ProfilePage> {
 
     if (picked != null) {
       // Format: YYYY-MM-DD
-      final formatted = "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
+      final formatted =
+          "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
       setState(() {
         birthC.text = formatted;
       });
@@ -161,8 +162,11 @@ class _ProfilePageState extends State<ProfilePage> {
         }
 
         final user = state.user;
-        final avatarImage = (user.avatarUrl != null && user.avatarUrl!.isNotEmpty)
-            ? NetworkImage(user.avatarUrl!)
+        final avatarImage =
+            (user.avatarUrl != null && user.avatarUrl!.isNotEmpty)
+            ? NetworkImage(
+                "${user.avatarUrl}?v=${DateTime.now().millisecondsSinceEpoch}",
+              )
             : const AssetImage('assets/images/logo.png') as ImageProvider;
 
         return SingleChildScrollView(
@@ -170,14 +174,14 @@ class _ProfilePageState extends State<ProfilePage> {
           child: Column(
             children: [
               const SizedBox(height: 16),
-              CircleAvatar(
-                radius: 48,
-                backgroundImage: avatarImage,
-              ),
+              CircleAvatar(radius: 48, backgroundImage: avatarImage),
               const SizedBox(height: 12),
               Text(
                 user.name,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 24),
 
@@ -189,7 +193,10 @@ class _ProfilePageState extends State<ProfilePage> {
                     title: "Edit Profile",
                     onTap: _enterEditMode,
                   ),
-                  _menuItem(icon: Icons.lock_outline, title: "Security & Privacy"),
+                  _menuItem(
+                    icon: Icons.lock_outline,
+                    title: "Security & Privacy",
+                  ),
                 ],
               ),
 
@@ -280,42 +287,48 @@ class _ProfilePageState extends State<ProfilePage> {
               child: CircleAvatar(radius: 65, backgroundImage: avatarImage),
             ),
             const SizedBox(height: 24),
-            
+
             // NAME
             _field(
               "Name",
               nameC,
-              validator: (val) => val == null || val.isEmpty ? "Required" : null,
+              validator: (val) =>
+                  val == null || val.isEmpty ? "Required" : null,
             ),
-            
+
             // EMAIL
             _field(
               "Email",
               emailC,
               validator: (val) {
-                 if (val == null || val.isEmpty) return "Required";
-                 if (!val.contains('@')) return "Invalid email";
-                 return null;
+                if (val == null || val.isEmpty) return "Required";
+                if (!val.contains('@')) return "Invalid email";
+                return null;
               },
               keyboardType: TextInputType.emailAddress,
             ),
-            
+
             // PHONE
             _field(
               "Phone Number",
               phoneC,
-              validator: (val) => val == null || val.isEmpty ? "Required" : null,
+              validator: (val) =>
+                  val == null || val.isEmpty ? "Required" : null,
               keyboardType: TextInputType.phone,
             ),
-            
+
             // POSITION (Dropdown)
-             Column(
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text("Position"),
                 const SizedBox(height: 6),
                 DropdownButtonFormField<String>(
-                  value: rollC.text.isNotEmpty && ['Staff', 'Manager'].contains(rollC.text) ? rollC.text : null,
+                  initialValue:
+                      rollC.text.isNotEmpty &&
+                          ['Staff', 'Manager'].contains(rollC.text)
+                      ? rollC.text
+                      : null,
                   items: const [
                     DropdownMenuItem(value: "Staff", child: Text("Staff")),
                     DropdownMenuItem(value: "Manager", child: Text("Manager")),
@@ -325,25 +338,34 @@ class _ProfilePageState extends State<ProfilePage> {
                       rollC.text = val ?? "";
                     });
                   },
-                  validator: (val) => val == null || val.isEmpty ? "Required" : null,
+                  validator: (val) =>
+                      val == null || val.isEmpty ? "Required" : null,
                   decoration: InputDecoration(
                     hintText: "Select Position",
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
               ],
             ),
-            
+
             // DEPARTMENT (Dropdown)
-             Column(
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text("Department"),
                 const SizedBox(height: 6),
                 DropdownButtonFormField<String>(
-                  value: aadhaarC.text.isNotEmpty && ['IT'].contains(aadhaarC.text) ? aadhaarC.text : null,
+                  initialValue:
+                      aadhaarC.text.isNotEmpty && ['IT'].contains(aadhaarC.text)
+                      ? aadhaarC.text
+                      : null,
                   items: const [
                     DropdownMenuItem(value: "IT", child: Text("IT")),
                   ],
@@ -352,28 +374,35 @@ class _ProfilePageState extends State<ProfilePage> {
                       aadhaarC.text = val ?? "";
                     });
                   },
-                  validator: (val) => val == null || val.isEmpty ? "Required" : null,
+                  validator: (val) =>
+                      val == null || val.isEmpty ? "Required" : null,
                   decoration: InputDecoration(
                     hintText: "Select Department",
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
               ],
             ),
-            
+
             // BIRTH DATE
             _field(
               "Date of Birth",
               birthC,
               readOnly: true,
               onTap: _selectDate,
-              validator: (val) => val == null || val.isEmpty ? "Required" : null,
+              validator: (val) =>
+                  val == null || val.isEmpty ? "Required" : null,
               keyboardType: TextInputType.datetime,
               suffixIcon: const Icon(Icons.calendar_month),
             ),
-            
+
             const SizedBox(height: 24),
             SizedBox(
               width: MediaQuery.of(context).size.width * 0.75,
@@ -390,24 +419,24 @@ class _ProfilePageState extends State<ProfilePage> {
                     : () {
                         if (_formKey.currentState!.validate()) {
                           context.read<ProfileCubit>().updateProfile(
-                                name: nameC.text,
-                                email: emailC.text,
-                                phoneNumber: phoneC.text,
-                                position: rollC.text,
-                                department: aadhaarC.text,
-                                birthDate: birthC.text,
-                              );
+                            name: nameC.text,
+                            email: emailC.text,
+                            phoneNumber: phoneC.text,
+                            position: rollC.text,
+                            department: aadhaarC.text,
+                            birthDate: birthC.text,
+                          );
                         }
                       },
-                child: isLoading 
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text(
-                      "Save changes",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
+                child: isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text(
+                        "Save changes",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
               ),
             ),
           ],
@@ -424,34 +453,38 @@ class _ProfilePageState extends State<ProfilePage> {
     return BlocListener<ProfileCubit, ProfileState>(
       listener: (context, state) {
         if (state is ProfileUpdateSuccess) {
-           ScaffoldMessenger.of(context).showSnackBar(
-             const SnackBar(content: Text("Profile updated successfully")),
-           );
-           setState(() => _mode = ProfileViewMode.main);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Profile updated successfully")),
+          );
+
+          setState(() {
+            _mode = ProfileViewMode.main;
+            _optimisticAvatar = null; // ✅ RESET
+          });
         } else if (state is ProfileError) {
-           ScaffoldMessenger.of(context).showSnackBar(
-             SnackBar(content: Text(state.message), backgroundColor: Colors.red),
-           );
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+          );
         }
       },
       child: BlocBuilder<ProfileCubit, ProfileState>(
         builder: (context, state) {
-        return Scaffold(
-          backgroundColor: AppColors.background,
-          body: SafeArea(
-            child: Column(
-              children: [
-                _buildHeader(),
-                Expanded(
-                  child: _mode == ProfileViewMode.main
-                      ? _buildProfileMain()
-                      : _buildEditProfile(state is ProfileLoading),
-                ),
-              ],
+          return Scaffold(
+            backgroundColor: AppColors.background,
+            body: SafeArea(
+              child: Column(
+                children: [
+                  _buildHeader(),
+                  Expanded(
+                    child: _mode == ProfileViewMode.main
+                        ? _buildProfileMain()
+                        : _buildEditProfile(state is ProfileLoading),
+                  ),
+                ],
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
       ),
     );
   }
@@ -481,7 +514,7 @@ class _ProfilePageState extends State<ProfilePage> {
       value: value,
       onChanged: onChanged,
       activeTrackColor: AppColors.primary,
-      activeColor: Colors.white,
+      activeThumbColor: Colors.white,
     );
   }
 
@@ -545,6 +578,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _changeAvatar() async {
     final file = await _galleryPicker.pickImage();
-    if (file != null) setState(() => _optimisticAvatar = file);
+    if (!mounted || file == null) return;
+
+    setState(() => _optimisticAvatar = file);
+    context.read<ProfileCubit>().updateAvatar(file);
   }
 }

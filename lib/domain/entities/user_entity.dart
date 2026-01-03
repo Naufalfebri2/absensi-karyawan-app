@@ -49,4 +49,20 @@ class UserEntity {
       avatarUrl: avatarUrl ?? this.avatarUrl,
     );
   }
+
+  // ===============================
+  // TO JSON (UNTUK AUTH / STORAGE)
+  // ===============================
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'email': email,
+      'position': position,
+      'department': department,
+      'phone_number': phoneNumber,
+      'birth_date': birthDate,
+      'avatar_url': avatarUrl,
+    };
+  }
 }

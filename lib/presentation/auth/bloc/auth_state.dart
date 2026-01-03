@@ -15,6 +15,11 @@ class AuthInitial extends AuthState {}
 /// ===============================
 /// LOADING STATE
 /// ===============================
+/// Dipakai HANYA untuk:
+/// - checkAuthStatus
+/// - login
+/// - logout
+/// ❌ BUKAN untuk update profile / avatar
 class AuthLoading extends AuthState {}
 
 /// ===============================
@@ -22,7 +27,7 @@ class AuthLoading extends AuthState {}
 /// ===============================
 class AuthAuthenticated extends AuthState {
   final String token;
-  final UserEntity user; // ✅ FIX: JANGAN dynamic
+  final UserEntity user;
 
   const AuthAuthenticated({required this.token, required this.user});
 

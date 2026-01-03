@@ -37,7 +37,7 @@ class ProfileCubit extends Cubit<ProfileState> {
   Future<void> updateProfile({
     required String name,
     required String email,
-    required String phoneNumber, // ✅ TAMBAH
+    required String phoneNumber,
     required String position,
     required String department,
     required String birthDate,
@@ -54,32 +54,38 @@ class ProfileCubit extends Cubit<ProfileState> {
 
       final currentUser = authState.user;
 
-      final updatedUser = await updateProfileUsecase(
+      // 🔹 Update ke backend
+      await updateProfileUsecase(
         userId: currentUser.id,
         name: name,
         email: email,
-        phoneNumber: phoneNumber, // ✅ KIRIM KE USECASE
+        phoneNumber: phoneNumber,
         position: position,
         department: department,
         birthDate: birthDate,
       );
 
-      // 🔥 UPDATE GLOBAL AUTH STATE
+      // 🔹 REFRESH SOURCE OF TRUTH DARI AUTH
+      final refreshedUser = authCubit.state is AuthAuthenticated
+          ? (authCubit.state as AuthAuthenticated).user
+          : currentUser;
+
+      // 🔹 UPDATE GLOBAL AUTH STATE
       await authCubit.setAuthenticated(
         token: authState.token,
         user: {
-          'id': updatedUser.id,
-          'name': updatedUser.name,
-          'email': updatedUser.email,
-          'phone_number': updatedUser.phoneNumber, // ✅ SIMPAN
-          'position': updatedUser.position,
-          'department': updatedUser.department,
-          'birth_date': updatedUser.birthDate,
-          'avatar_url': currentUser.avatarUrl, // tetap
+          'id': refreshedUser.id,
+          'name': refreshedUser.name,
+          'email': refreshedUser.email,
+          'phone_number': refreshedUser.phoneNumber,
+          'position': refreshedUser.position,
+          'department': refreshedUser.department,
+          'birth_date': refreshedUser.birthDate,
+          'avatar_url': refreshedUser.avatarUrl,
         },
       );
 
-      emit(ProfileUpdateSuccess(updatedUser));
+      emit(ProfileUpdateSuccess(refreshedUser));
     } catch (e) {
       emit(ProfileError(e.toString().replaceFirst('Exception: ', '')));
     }
@@ -89,42 +95,46 @@ class ProfileCubit extends Cubit<ProfileState> {
   // UPDATE AVATAR (MULTIPART)
   // ===============================
   Future<void> updateAvatar(File image) async {
-    // 🔥 OPTIMISTIC EMIT (avatar langsung berubah)
+    final authState = authCubit.state;
+
+    if (authState is! AuthAuthenticated) {
+      emit(const ProfileError('Session tidak valid'));
+      return;
+    }
+
+    final currentUser = authState.user;
+    final previousAvatar = currentUser.avatarUrl;
+
+    // 🔥 OPTIMISTIC UI (PREVIEW DARI DEVICE)
     emit(ProfileAvatarOptimistic(image));
 
     try {
-      final authState = authCubit.state;
-
-      if (authState is! AuthAuthenticated) {
-        emit(const ProfileError('Session tidak valid'));
-        return;
-      }
-
-      final currentUser = authState.user;
-
-      // 🔥 CALL USECASE AVATAR
+      // 🔹 Upload avatar ke backend
       final avatarUrl = await updateAvatarUsecase(
         userId: currentUser.id,
         image: image,
       );
 
-      // 🔥 UPDATE GLOBAL AUTH STATE
+      // 🔹 UPDATE GLOBAL AUTH STATE (SOURCE OF TRUTH)
+      final updatedUser = currentUser.copyWith(avatarUrl: avatarUrl);
+
       await authCubit.setAuthenticated(
         token: authState.token,
         user: {
-          'id': currentUser.id,
-          'name': currentUser.name,
-          'email': currentUser.email,
-          'phone_number': currentUser.phoneNumber, // ✅ TETAP
-          'position': currentUser.position,
-          'department': currentUser.department,
-          'avatar_url': avatarUrl,
+          'id': updatedUser.id,
+          'name': updatedUser.name,
+          'email': updatedUser.email,
+          'phone_number': updatedUser.phoneNumber,
+          'position': updatedUser.position,
+          'department': updatedUser.department,
+          'avatar_url': updatedUser.avatarUrl,
         },
       );
 
-      // 🔥 FINAL CONFIRM STATE
-      emit(ProfileLoaded(currentUser.copyWith(avatarUrl: avatarUrl)));
+      emit(ProfileLoaded(updatedUser));
     } catch (e) {
+      // 🔥 ROLLBACK JIKA GAGAL
+      emit(ProfileLoaded(currentUser.copyWith(avatarUrl: previousAvatar)));
       emit(ProfileError(e.toString().replaceFirst('Exception: ', '')));
     }
   }
