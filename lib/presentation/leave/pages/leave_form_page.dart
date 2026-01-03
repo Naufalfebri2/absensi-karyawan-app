@@ -29,12 +29,7 @@ class _LeaveFormPageState extends State<LeaveFormPage> {
 
   static const int maxFileSizeInBytes = 5 * 1024 * 1024;
 
-  final List<String> _leaveTypes = [
-    'Annual Leave',
-    'Permission',
-    'Sick Leave',
-    'Business Trip',
-  ];
+  final List<String> _leaveTypes = ['Cuti', 'Izin', 'Sakit', 'Dinas', 'Lembur'];
 
   final Map<DateTime, String> _nationalHolidays = {
     DateTime(2025, 1, 1): 'New Year',
