@@ -22,6 +22,7 @@ import 'presentation/home/bloc/home_cubit.dart';
 // NOTIFICATION CUBIT
 // ===============================
 import 'presentation/notifications/bloc/notification_cubit.dart';
+import 'presentation/notifications/services/notification_socket_service.dart';
 
 // ===============================
 // PROFILE CUBIT
@@ -149,6 +150,9 @@ void main() async {
   final notificationRepository = NotificationRepositoryImpl(
     remoteDataSource: notificationRemote,
   );
+  
+  // 🔥 SOCKET SERVICE
+  final notificationSocketService = NotificationSocketService();
 
   final getNotifications = GetNotifications(notificationRepository);
   final markAsRead = MarkAsRead(notificationRepository);
@@ -175,6 +179,8 @@ void main() async {
       authCubit: authCubit,
       getNotifications: getNotifications,
       markAsRead: markAsRead,
+      notificationSocketService: notificationSocketService,
+      localStorageService: storage,
     ),
   );
 }
@@ -191,6 +197,8 @@ class AbsensiApp extends StatelessWidget {
 
   final GetNotifications getNotifications;
   final MarkAsRead markAsRead;
+  final NotificationSocketService notificationSocketService;
+  final LocalStorageService localStorageService;
 
   const AbsensiApp({
     super.key,
@@ -203,6 +211,8 @@ class AbsensiApp extends StatelessWidget {
     required this.authCubit,
     required this.getNotifications,
     required this.markAsRead,
+    required this.notificationSocketService,
+    required this.localStorageService,
   });
 
   @override
@@ -299,6 +309,8 @@ class AbsensiApp extends StatelessWidget {
             create: (context) => NotificationCubit(
               getNotifications: context.read<GetNotifications>(),
               markAsRead: context.read<MarkAsRead>(),
+              socketService: notificationSocketService,
+              storage: localStorageService,
             )..loadNotifications(),
           ),
 

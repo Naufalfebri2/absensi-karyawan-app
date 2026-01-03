@@ -75,12 +75,12 @@ class ProfileCubit extends Cubit<ProfileState> {
         token: authState.token,
         user: {
           'id': refreshedUser.id,
-          'name': refreshedUser.name,
-          'email': refreshedUser.email,
-          'phone_number': refreshedUser.phoneNumber,
-          'position': refreshedUser.position,
-          'department': refreshedUser.department,
-          'birth_date': refreshedUser.birthDate,
+          'name': name, // ✅ Use new Name
+          'email': email, // ✅ Use new Email
+          'phone_number': phoneNumber, // ✅ Use new Phone
+          'position': position, // ✅ Use new Position
+          'department': department, // ✅ Use new Department
+          'birth_date': birthDate, // ✅ Use new BirthDate
           'avatar_url': refreshedUser.avatarUrl,
         },
       );

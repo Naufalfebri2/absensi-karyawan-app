@@ -13,6 +13,7 @@ import '../../attendance/bloc/attendance_state.dart';
 
 import '../../notifications/bloc/notification_cubit.dart';
 import '../../notifications/bloc/notification_state.dart';
+import '../../auth/bloc/auth_cubit.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -92,16 +93,25 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   GestureDetector(
                     onTap: () => context.push('/profile'),
-                    child: CircleAvatar(
-                      radius: 18,
-                      backgroundColor: Colors.white,
-                      child: Padding(
-                        padding: const EdgeInsets.all(4),
-                        child: Image.asset(
-                          'assets/images/logo.png',
-                          fit: BoxFit.contain,
-                        ),
-                      ),
+                    child: BlocBuilder<AuthCubit, AuthState>(
+                      builder: (context, state) {
+                        ImageProvider imageProvider;
+                        if (state is AuthAuthenticated &&
+                            state.user.avatarUrl != null &&
+                            state.user.avatarUrl!.isNotEmpty) {
+                          imageProvider = NetworkImage(
+                            "${state.user.avatarUrl!}?v=${DateTime.now().millisecondsSinceEpoch}",
+                          );
+                        } else {
+                          imageProvider = const AssetImage('assets/images/logo.png');
+                        }
+
+                        return CircleAvatar(
+                          radius: 18,
+                          backgroundColor: Colors.white,
+                          backgroundImage: imageProvider,
+                        );
+                      },
                     ),
                   ),
                   const Spacer(),
