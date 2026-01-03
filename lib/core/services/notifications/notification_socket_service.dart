@@ -28,7 +28,7 @@ class NotificationSocketService {
   /// Contoh:
   /// ws://10.51.215.119:8000/ws/notifications
   static const String _socketUrl =
-      'ws://10.51.215.119:8000/employee/1';
+      'ws://202.10.35.18:8002/employee/1';
 
   // ===============================
   // CONNECT
