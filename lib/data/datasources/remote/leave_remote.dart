@@ -55,21 +55,20 @@ class LeaveRemote {
         'start_date': _formatDate(startDate),
         'end_date': _formatDate(endDate),
         'reason': reason,
-        'total_days': totalDays,
-        'status': 'pending',
         if (attachment != null)
           'attachment': await MultipartFile.fromFile(
             attachment.path,
             filename: attachment.path.split('/').last,
           ),
       });
-
+      print(formData);
       await dio.post(
-        ApiEndpoint.leaves,
+        ApiEndpoint.store,
         data: formData,
         options: Options(headers: {'Accept': 'application/json'}),
       );
     } on DioException catch (e) {
+      print(e);
       throw Exception(
         e.response?.data?['message'] ?? 'Failed to submit leave request',
       );
