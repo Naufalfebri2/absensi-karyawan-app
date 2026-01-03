@@ -1,13 +1,17 @@
-import 'package:dio/dio.dart';
-
-import '../../../core/network/dio_client.dart';
 import '../../models/notification_model.dart';
+import 'package:absensi_karyawan_app/core/services/notifications/notification_socket_service.dart';
 
 /// ===============================
 /// NOTIFICATION REMOTE DATASOURCE
 /// ===============================
+/// WebSocket-based (REALTIME)
+/// NO REST / NO DIO
+/// ===============================
 abstract class NotificationRemoteDataSource {
-  Future<List<NotificationModel>> getNotifications();
+  /// REALTIME notification stream
+  Stream<NotificationModel> listen({required String token});
+
+  /// Optional (backend event-based)
   Future<void> markAsRead(int notificationId);
 }
 
@@ -15,39 +19,21 @@ abstract class NotificationRemoteDataSource {
 /// IMPLEMENTATION
 /// ===============================
 class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
-  NotificationRemoteDataSourceImpl();
+  final NotificationSocketService socketService;
+
+  NotificationRemoteDataSourceImpl({required this.socketService});
 
   @override
-  Future<List<NotificationModel>> getNotifications() async {
-    try {
-      final Response response = await DioClient.instance.get('/notifications');
-
-      final data = response.data;
-
-      if (data == null || data['data'] == null) {
-        return [];
-      }
-
-      final List list = data['data'] as List;
-
-      return list
-          .map(
-            (json) => NotificationModel.fromJson(json as Map<String, dynamic>),
-          )
-          .toList();
-    } catch (e) {
-      // ❗ JANGAN throw custom exception
-      // Repository yang akan handle → Failure
-      rethrow;
-    }
+  Stream<NotificationModel> listen({required String token}) {
+    return socketService
+        .connect(token: token)
+        .map((json) => NotificationModel.fromJson(json));
   }
 
   @override
   Future<void> markAsRead(int notificationId) async {
-    try {
-      await DioClient.instance.post('/notifications/$notificationId/read');
-    } catch (e) {
-      rethrow;
-    }
+    // 🔒 Backend sudah event-based via socket
+    // Tidak perlu REST call
+    return;
   }
 }

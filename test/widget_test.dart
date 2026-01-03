@@ -31,6 +31,8 @@ import 'package:absensi_karyawan_app/core/services/device/local_storage_service.
 import 'package:absensi_karyawan_app/core/services/holiday/holiday_service.dart';
 import 'package:absensi_karyawan_app/core/services/location/location_service.dart';
 
+import 'package:absensi_karyawan_app/core/services/notifications/notification_socket_service.dart';
+
 // ===============================
 // CUBIT
 // ===============================
@@ -70,7 +72,15 @@ void main() {
     // ===============================
     // NOTIFICATION 🔔
     // ===============================
-    final notificationRemote = NotificationRemoteDataSourceImpl();
+    // ===============================
+    // NOTIFICATION 🔔
+    // ===============================
+    final notificationSocketService = NotificationSocketService();
+
+    final notificationRemote = NotificationRemoteDataSourceImpl(
+      socketService: notificationSocketService,
+    );
+
     final notificationRepository = NotificationRepositoryImpl(
       remoteDataSource: notificationRemote,
     );
@@ -103,6 +113,9 @@ void main() {
         authCubit: authCubit,
         getNotifications: getNotifications,
         markAsRead: markAsRead,
+
+        notificationSocketService: notificationSocketService,
+        localStorageService: storage,
       ),
     );
 

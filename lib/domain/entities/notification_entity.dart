@@ -23,11 +23,7 @@ class NotificationEntity extends Equatable {
   final String title;
   final String message;
   final NotificationType type;
-
-  /// apakah sudah dibaca
   final bool isRead;
-
-  /// waktu notifikasi dibuat
   final DateTime createdAt;
 
   const NotificationEntity({
@@ -38,6 +34,27 @@ class NotificationEntity extends Equatable {
     required this.isRead,
     required this.createdAt,
   });
+
+  /// ===============================
+  /// COPY WITH (IMMUTABLE UPDATE)
+  /// ===============================
+  NotificationEntity copyWith({
+    int? id,
+    String? title,
+    String? message,
+    NotificationType? type,
+    bool? isRead,
+    DateTime? createdAt,
+  }) {
+    return NotificationEntity(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      message: message ?? this.message,
+      type: type ?? this.type,
+      isRead: isRead ?? this.isRead,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
 
   @override
   List<Object?> get props => [id, title, message, type, isRead, createdAt];

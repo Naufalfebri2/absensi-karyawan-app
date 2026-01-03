@@ -4,23 +4,17 @@ import '../../domain/entities/notification_entity.dart';
 /// NOTIFICATION MODEL (DATA LAYER)
 /// ===============================
 ///
-/// - Representasi data dari API
+/// - Representasi data dari WebSocket payload
+/// - Defensive parsing (anti crash)
 /// - Tidak ada UI logic
-/// - Mapping enum dilakukan di mapper (bukan di sini)
+/// - Mapping enum dilakukan di mapper
 ///
 class NotificationModel {
   final int id;
   final String title;
   final String message;
-
-  /// type dari API (string), contoh:
-  /// "absensi", "meeting", "radius", dll
   final String type;
-
-  /// status baca dari API
   final bool isRead;
-
-  /// waktu dibuat (ISO string dari API)
   final DateTime createdAt;
 
   const NotificationModel({
@@ -33,16 +27,16 @@ class NotificationModel {
   });
 
   /// ===============================
-  /// FROM JSON
+  /// FROM JSON (DEFENSIVE)
   /// ===============================
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
     return NotificationModel(
-      id: json['id'] as int,
-      title: json['title'] as String,
-      message: json['message'] as String,
-      type: json['type'] as String,
-      isRead: json['is_read'] == true || json['is_read'] == 1,
-      createdAt: DateTime.parse(json['created_at'] as String),
+      id: _parseInt(json['id']),
+      title: _parseString(json['title']),
+      message: _parseString(json['message']),
+      type: _parseString(json['type']),
+      isRead: _parseBool(json['is_read']),
+      createdAt: _parseDate(json['created_at']),
     );
   }
 
@@ -63,9 +57,6 @@ class NotificationModel {
   /// ===============================
   /// TO ENTITY (OPTIONAL SHORTCUT)
   /// ===============================
-  /// NOTE:
-  /// Biasanya mapping dilakukan di NotificationMapper,
-  /// method ini disediakan jika dibutuhkan cepat.
   NotificationEntity toEntity(NotificationType notificationType) {
     return NotificationEntity(
       id: id,
@@ -75,5 +66,40 @@ class NotificationModel {
       isRead: isRead,
       createdAt: createdAt,
     );
+  }
+
+  // =======================================================
+  // DEFENSIVE PARSERS
+  // =======================================================
+
+  static int _parseInt(dynamic value) {
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
+  }
+
+  static String _parseString(dynamic value) {
+    if (value is String) return value;
+    return '';
+  }
+
+  static bool _parseBool(dynamic value) {
+    if (value is bool) return value;
+    if (value is int) return value == 1;
+    if (value is String) return value == '1' || value.toLowerCase() == 'true';
+    return false;
+  }
+
+  static DateTime _parseDate(dynamic value) {
+    if (value is String) {
+      return DateTime.tryParse(value) ?? DateTime.now();
+    }
+    if (value is int) {
+      // unix timestamp (seconds or millis)
+      return value > 1000000000000
+          ? DateTime.fromMillisecondsSinceEpoch(value)
+          : DateTime.fromMillisecondsSinceEpoch(value * 1000);
+    }
+    return DateTime.now();
   }
 }

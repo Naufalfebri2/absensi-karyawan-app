@@ -8,7 +8,7 @@ import '../../../core/errors/failures.dart';
 import '../../../core/services/device/local_storage_service.dart';
 import '../../../data/models/notification_model.dart';
 import '../../../data/mappers/notification_mapper.dart';
-import '../services/notification_socket_service.dart';
+import '../../../core/services/notifications/notification_socket_service.dart';
 
 import 'notification_state.dart';
 
@@ -19,6 +19,7 @@ class NotificationCubit extends Cubit<NotificationState> {
   final LocalStorageService storage;
 
   StreamSubscription? _socketSubscription;
+  bool _socketInitialized = false;
 
   NotificationCubit({
     required this.getNotifications,
@@ -28,14 +29,13 @@ class NotificationCubit extends Cubit<NotificationState> {
   }) : super(const NotificationInitial());
 
   // ===============================
-  // LOAD NOTIFICATIONS
+  // LOAD INITIAL NOTIFICATIONS (REST)
   // ===============================
   Future<void> loadNotifications() async {
     emit(const NotificationLoading());
 
     try {
       final notifications = await getNotifications();
-
       final unreadCount = notifications.where((e) => !e.isRead).length;
 
       emit(
@@ -45,8 +45,8 @@ class NotificationCubit extends Cubit<NotificationState> {
         ),
       );
 
-      // 🔥 Connect WS if not connected
-      _initSocket();
+      // 🔥 Init socket once
+      await _initSocket();
     } on Failure catch (e) {
       emit(NotificationError(message: e.message));
     } catch (_) {
@@ -59,59 +59,79 @@ class NotificationCubit extends Cubit<NotificationState> {
   }
 
   // ===============================
-  // INIT SOCKET
+  // INIT SOCKET (ONCE)
   // ===============================
   Future<void> _initSocket() async {
+    if (_socketInitialized) return;
+
     try {
       final token = await storage.getAccessToken();
       if (token == null) return;
 
-      if (!socketService.isConnected) {
-        _socketSubscription?.cancel();
-        _socketSubscription = socketService.connect(token: token).listen(
-          (data) {
-            _handleSocketMessage(data);
-          },
-        );
-      }
+      _socketSubscription = socketService
+          .connect(token: token)
+          .listen(_handleSocketMessage);
+
+      _socketInitialized = true;
     } catch (_) {
-      // ignore
-    }
-  }
-
-  void _handleSocketMessage(Map<String, dynamic> data) {
-    if (state is NotificationLoaded) {
-      try {
-        final model = NotificationModel.fromJson(data);
-        final entity = NotificationMapper.toEntity(model);
-
-        final currentList = (state as NotificationLoaded).notifications;
-        
-        // Add to top
-        final newList = [entity, ...currentList];
-        final unreadCount = newList.where((e) => !e.isRead).length;
-
-        emit(
-          NotificationLoaded(
-            notifications: newList,
-            unreadCount: unreadCount,
-          ),
-        );
-      } catch (_) {
-        // ignore parse error
-      }
+      // silent fail (socket optional)
     }
   }
 
   // ===============================
-  // MARK AS READ
+  // HANDLE SOCKET MESSAGE (REALTIME)
+  // ===============================
+  void _handleSocketMessage(Map<String, dynamic> data) {
+    try {
+      final model = NotificationModel.fromJson(data);
+      final entity = NotificationMapper.toEntity(model);
+
+      final currentState = state;
+      if (currentState is! NotificationLoaded) return;
+
+      // Prevent duplicate
+      final exists = currentState.notifications.any((e) => e.id == entity.id);
+      if (exists) return;
+
+      final updatedList = [entity, ...currentState.notifications];
+      final unreadCount = updatedList.where((e) => !e.isRead).length;
+
+      emit(
+        NotificationLoaded(
+          notifications: updatedList,
+          unreadCount: unreadCount,
+        ),
+      );
+    } catch (_) {
+      // ignore malformed socket payload
+    }
+  }
+
+  // ===============================
+  // MARK AS READ (OPTIMISTIC)
   // ===============================
   Future<void> readNotification(NotificationEntity notification) async {
+    final currentState = state;
+    if (currentState is! NotificationLoaded) return;
+
     try {
       await markAsRead(notification.id);
 
-      // Reload agar state konsisten dengan backend
-      await loadNotifications();
+      final updatedList = currentState.notifications.map((e) {
+        if (e.id == notification.id) {
+          return e.copyWith(isRead: true);
+        }
+        return e;
+      }).toList();
+
+      final unreadCount = updatedList.where((e) => !e.isRead).length;
+
+      emit(
+        NotificationLoaded(
+          notifications: updatedList,
+          unreadCount: unreadCount,
+        ),
+      );
     } on Failure catch (e) {
       emit(NotificationError(message: e.message));
     } catch (_) {

@@ -22,7 +22,7 @@ import 'presentation/home/bloc/home_cubit.dart';
 // NOTIFICATION CUBIT
 // ===============================
 import 'presentation/notifications/bloc/notification_cubit.dart';
-import 'presentation/notifications/services/notification_socket_service.dart';
+import 'core/services/notifications/notification_socket_service.dart';
 
 // ===============================
 // PROFILE CUBIT
@@ -146,13 +146,18 @@ void main() async {
   // ===============================
   // NOTIFICATION
   // ===============================
-  final notificationRemote = NotificationRemoteDataSourceImpl();
+  // 🔥 SOCKET SERVICE (HARUS DULUAN)
+  final notificationSocketService = NotificationSocketService();
+
+  // NOTIFICATION REMOTE (PAKAI SOCKET)
+  final notificationRemote = NotificationRemoteDataSourceImpl(
+    socketService: notificationSocketService,
+  );
+
+  // NOTIFICATION REPOSITORY
   final notificationRepository = NotificationRepositoryImpl(
     remoteDataSource: notificationRemote,
   );
-  
-  // 🔥 SOCKET SERVICE
-  final notificationSocketService = NotificationSocketService();
 
   final getNotifications = GetNotifications(notificationRepository);
   final markAsRead = MarkAsRead(notificationRepository);

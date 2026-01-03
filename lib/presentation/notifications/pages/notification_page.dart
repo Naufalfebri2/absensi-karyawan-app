@@ -13,11 +13,16 @@ class NotificationPage extends StatefulWidget {
 }
 
 class _NotificationPageState extends State<NotificationPage> {
+  bool _initialized = false;
+
   @override
-  void initState() {
-    super.initState();
-    // load notifikasi saat page dibuka
-    context.read<NotificationCubit>().loadNotifications();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (!_initialized) {
+      context.read<NotificationCubit>().loadNotifications();
+      _initialized = true;
+    }
   }
 
   @override
@@ -25,6 +30,15 @@ class _NotificationPageState extends State<NotificationPage> {
     return Scaffold(
       appBar: AppBar(title: const Text('Notifications'), centerTitle: true),
       body: BlocBuilder<NotificationCubit, NotificationState>(
+        buildWhen: (previous, current) {
+          // Hindari rebuild tidak perlu
+          if (previous is NotificationLoaded && current is NotificationLoaded) {
+            return previous.notifications.length !=
+                    current.notifications.length ||
+                previous.unreadCount != current.unreadCount;
+          }
+          return true;
+        },
         builder: (context, state) {
           // ===============================
           // LOADING
@@ -91,7 +105,7 @@ class _NotificationPageState extends State<NotificationPage> {
           }
 
           // ===============================
-          // INITIAL / FALLBACK
+          // FALLBACK
           // ===============================
           return const SizedBox.shrink();
         },
