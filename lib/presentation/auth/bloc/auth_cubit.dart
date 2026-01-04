@@ -21,6 +21,11 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       final token = await storage.getAccessToken();
       final rawUser = await storage.getUser();
+      
+      // 🔥 DEBUG LOGGING
+      print('🔍 [AuthCubit] checkAuthStatus called');
+      print('🔍 [AuthCubit] Token from storage: ${token != null ? "EXISTS (${token.length} chars)" : "NULL"}');
+      print('🔍 [AuthCubit] User from storage: ${rawUser != null ? "EXISTS" : "NULL"}');
 
       if (token != null &&
           token.isNotEmpty &&
@@ -29,10 +34,18 @@ class AuthCubit extends Cubit<AuthState> {
         final user = UserMapper.fromJson(rawUser);
 
         emit(AuthAuthenticated(token: token, user: user));
+        
+        // 🔥 DEBUG LOGGING
+        print('🔍 [AuthCubit] User authenticated: ${user.name}');
       } else {
         emit(AuthUnauthenticated());
+        
+        // 🔥 DEBUG LOGGING
+        print('🔍 [AuthCubit] No valid session found');
       }
-    } catch (_) {
+    } catch (e) {
+      // 🔥 DEBUG LOGGING
+      print('🔴 [AuthCubit] Error in checkAuthStatus: $e');
       emit(AuthUnauthenticated());
     }
   }
@@ -55,15 +68,27 @@ class AuthCubit extends Cubit<AuthState> {
     emit(AuthLoading());
 
     try {
+      // 🔥 DEBUG LOGGING
+      print('🔍 [AuthCubit] setAuthenticated called');
+      print('🔍 [AuthCubit] Token length: ${token.length}');
+      print('🔍 [AuthCubit] Token preview: ${token.substring(0, token.length > 20 ? 20 : token.length)}...');
+      print('🔍 [AuthCubit] User data: $user');
+
       final normalizedUser = _normalizeUser(user);
 
       final userEntity = UserMapper.fromJson(normalizedUser);
 
       await storage.saveAccessToken(token);
       await storage.saveUser(normalizedUser);
+      
+      // 🔥 DEBUG LOGGING - Verify save
+      final savedToken = await storage.getAccessToken();
+      print('🔍 [AuthCubit] Token saved successfully: ${savedToken != null && savedToken.isNotEmpty}');
 
       emit(AuthAuthenticated(token: token, user: userEntity));
-    } catch (_) {
+    } catch (e) {
+      // 🔥 DEBUG LOGGING
+      print('🔴 [AuthCubit] Error in setAuthenticated: $e');
       emit(AuthUnauthenticated());
     }
   }

@@ -54,8 +54,15 @@ class _CheckInPageState extends State<CheckInPage> {
           // SUCCESS
           // ===============================
           if (state is CheckInSuccess) {
-            // 🔥 AUTO REFRESH HOME
-            context.read<HomeCubit>().refresh();
+            // 🔥 OPTIMISTIC UI UPDATE (Immediate feedback)
+            context.read<HomeCubit>().markCheckedIn();
+
+            // 🔥 DELAYED API REFRESH (Ensure backend sync)
+            Future.delayed(const Duration(milliseconds: 500), () {
+              if (context.mounted) {
+                context.read<HomeCubit>().refresh();
+              }
+            });
 
             // kembali ke Home
             context.pop({

@@ -53,6 +53,10 @@ class AttendanceRemote {
       );
 
       final data = response.data['data'];
+      
+      // 🔥 DEBUG LOGGING
+      print('🔍 [AttendanceRemote] API Response: ${response.data}');
+      print('🔍 [AttendanceRemote] Data: $data');
 
       // 🔹 Tidak ada data
       if (data == null) return null;
@@ -75,6 +79,13 @@ class AttendanceRemote {
         final isToday = entity.date.year == now.year &&
             entity.date.month == now.month &&
             entity.date.day == now.day;
+        
+        // 🔥 DEBUG LOGGING
+        print('🔍 [AttendanceRemote] Entity date: ${entity.date}');
+        print('🔍 [AttendanceRemote] Today: $now');
+        print('🔍 [AttendanceRemote] Is today: $isToday');
+        print('🔍 [AttendanceRemote] checkInTime: ${entity.checkInTime}');
+        print('🔍 [AttendanceRemote] checkOutTime: ${entity.checkOutTime}');
 
         if (isToday) {
           return entity;

@@ -36,14 +36,28 @@ class DioClient {
         onRequest: (options, handler) async {
           final token = await storage.getAccessToken();
 
+          // 🔥 DEBUG LOGGING
+          if (kDebugMode) {
+            debugPrint('🔍 [DIO] Token from storage: ${token != null ? "EXISTS (${token.length} chars)" : "NULL"}');
+          }
+
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
+            
+            if (kDebugMode) {
+              debugPrint('🔍 [DIO] Authorization header set');
+            }
+          } else {
+            if (kDebugMode) {
+              debugPrint('⚠️ [DIO] No token available - request will be unauthenticated');
+            }
           }
 
           if (kDebugMode) {
             debugPrint(
               '[DIO REQUEST] ${options.method} ${options.baseUrl}${options.path}',
             );
+            debugPrint('[DIO HEADERS] ${options.headers}');
             debugPrint('[DIO DATA] ${options.data}');
           }
 
@@ -72,7 +86,16 @@ class DioClient {
               '${error.requestOptions.path} '
               '${error.message}',
             );
+            
+            // 🔥 DETAILED 401 ERROR LOGGING
+            if (error.response?.statusCode == 401) {
+              debugPrint('🔴 [DIO] 401 UNAUTHORIZED ERROR');
+              debugPrint('🔴 [DIO] Request URL: ${error.requestOptions.uri}');
+              debugPrint('🔴 [DIO] Request Headers: ${error.requestOptions.headers}');
+              debugPrint('🔴 [DIO] Response: ${error.response?.data}');
+            }
           }
+          
           return handler.next(error);
         },
       ),

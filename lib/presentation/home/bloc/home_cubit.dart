@@ -112,12 +112,25 @@ class HomeCubit extends Cubit<HomeState> {
     final now = DateTime.now();
 
     final todayAttendance = await getTodayAttendance();
+    
+    // 🔥 DEBUG LOGGING
+    print('🔍 [HomeCubit] getTodayAttendance result: $todayAttendance');
+    
     if (todayAttendance != null) {
       _hasCheckedIn = todayAttendance.hasCheckIn;
       _hasCheckedOut = todayAttendance.hasCheckOut;
+      
+      // 🔥 DEBUG LOGGING
+      print('🔍 [HomeCubit] hasCheckIn: $_hasCheckedIn');
+      print('🔍 [HomeCubit] hasCheckOut: $_hasCheckedOut');
+      print('🔍 [HomeCubit] checkInTime: ${todayAttendance.checkInTime}');
+      print('🔍 [HomeCubit] checkOutTime: ${todayAttendance.checkOutTime}');
     } else {
       _hasCheckedIn = false;
       _hasCheckedOut = false;
+      
+      // 🔥 DEBUG LOGGING
+      print('🔍 [HomeCubit] No attendance data for today');
     }
 
     _holidayCache = await holidayService.getNationalHolidays(now.year);
@@ -254,7 +267,7 @@ class HomeCubit extends Cubit<HomeState> {
   }
 
   void markCheckedOut() {
-    _hasCheckedIn = false;
+    _hasCheckedIn = true; // 🔥 FIX: Keep checked in state
     _hasCheckedOut = true;
     _emitHomeState(DateTime.now());
   }
