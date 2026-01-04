@@ -112,23 +112,23 @@ class HomeCubit extends Cubit<HomeState> {
     final now = DateTime.now();
 
     final todayAttendance = await getTodayAttendance();
-    
+
     // 🔥 DEBUG LOGGING
     print('🔍 [HomeCubit] getTodayAttendance result: $todayAttendance');
-    
+
     if (todayAttendance != null) {
       _hasCheckedIn = todayAttendance.hasCheckIn;
       _hasCheckedOut = todayAttendance.hasCheckOut;
-      
+
       // 🔥 DEBUG LOGGING
       print('🔍 [HomeCubit] hasCheckIn: $_hasCheckedIn');
       print('🔍 [HomeCubit] hasCheckOut: $_hasCheckedOut');
       print('🔍 [HomeCubit] checkInTime: ${todayAttendance.checkInTime}');
       print('🔍 [HomeCubit] checkOutTime: ${todayAttendance.checkOutTime}');
-    } else {
-      _hasCheckedIn = false;
-      _hasCheckedOut = false;
-      
+      // } else {
+      //   _hasCheckedIn = false;
+      //   _hasCheckedOut = false;
+
       // 🔥 DEBUG LOGGING
       print('🔍 [HomeCubit] No attendance data for today');
     }
@@ -206,8 +206,8 @@ class HomeCubit extends Cubit<HomeState> {
     } else if (isHoliday) {
       restrictionMessage = 'National holiday: $holidayName';
     } else if (!isWithinOfficeRadius) {
-       // 🔒 NEW: Block check-in if outside radius
-       restrictionMessage = 'You are outside the office radius';
+      // 🔒 NEW: Block check-in if outside radius
+      restrictionMessage = 'You are outside the office radius';
     } else {
       // ✅ VALID STATE (Inside Radius, Not Holiday, GPS OK)
       if (!_hasCheckedIn) {

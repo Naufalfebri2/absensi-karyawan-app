@@ -130,10 +130,17 @@ class AttendanceCubit extends Cubit<AttendanceState> {
     final today = _normalizeDate(checkInTime);
     final formattedTime = _formatTime(checkInTime);
 
-    final updatedToday = state.todayAttendance?.copyWith(
-      checkInTime: formattedTime,
-      status: status,
-    );
+    final updatedToday =
+        state.todayAttendance?.copyWith(
+          checkInTime: formattedTime,
+          status: status,
+        ) ??
+        AttendanceEntity(
+          date: today,
+          checkInTime: formattedTime,
+          checkOutTime: null,
+          status: status,
+        );
 
     final updatedRecords = state.records.map((e) {
       if (_isSameDate(e.date, today)) {
@@ -154,9 +161,9 @@ class AttendanceCubit extends Cubit<AttendanceState> {
     final today = _normalizeDate(checkOutTime);
     final formattedTime = _formatTime(checkOutTime);
 
-    final updatedToday = state.todayAttendance?.copyWith(
-      checkOutTime: formattedTime,
-    );
+    final updatedToday =
+        state.todayAttendance?.copyWith(checkOutTime: formattedTime) ??
+        state.todayAttendance;
 
     final updatedRecords = state.records.map((e) {
       if (_isSameDate(e.date, today)) {

@@ -103,7 +103,9 @@ class _HomePageState extends State<HomePage> {
                             "${state.user.avatarUrl!}?v=${DateTime.now().millisecondsSinceEpoch}",
                           );
                         } else {
-                          imageProvider = const AssetImage('assets/images/logo.png');
+                          imageProvider = const AssetImage(
+                            'assets/images/logo.png',
+                          );
                         }
 
                         return CircleAvatar(
@@ -269,6 +271,7 @@ class _HomePageState extends State<HomePage> {
                                             );
                                             if (!context.mounted) return;
                                             if (result != null) {
+                                              homeCubit.markCheckedIn();
                                               homeCubit.refresh();
                                               context
                                                   .read<NotificationCubit>()
