@@ -5,25 +5,23 @@ plugins {
 }
 
 android {
-    namespace = "com.example.absensi_karyawan_app"
+    namespace = "com.absensi.karyawan"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-
-        // WAJIB → memperbaiki error desugaring
         isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
+        jvmTarget = "17"
     }
 
     defaultConfig {
-        applicationId = "com.example.absensi_karyawan_app"
-        minSdk = flutter.minSdkVersion                      // NOTE: minSdk harus minimal 21 untuk desugaring
+        applicationId = "com.absensi.karyawan"
+        minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -37,7 +35,6 @@ android {
 }
 
 dependencies {
-    // FIX → gunakan versi terbaru sesuai kebutuhan plugin
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
 
